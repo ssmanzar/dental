@@ -1,0 +1,3252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sehat Dental — Clinic Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+:root{
+  --bg:#F4F8F7;
+  --surface:#FFFFFF;
+  --ink:#122624;
+  --muted:#5C756F;
+  --border:#DCE7E2;
+  --primary:#0E5C52;
+  --primary-dark:#0A3E38;
+  --primary-light:#E4F1EE;
+  --accent:#DD6B3B;
+  --accent-light:#FBE6DA;
+  --success:#2E8B67;
+  --success-light:#E1F2E9;
+  --warn:#B9840F;
+  --warn-light:#FBF0D8;
+  --danger:#C1432E;
+  --danger-light:#FBE6E1;
+  --radius:12px;
+  --shadow:0 1px 2px rgba(15,40,36,.06), 0 6px 18px rgba(15,40,36,.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,.brand,.tooth-label{font-family:'Outfit',sans-serif;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+::selection{background:var(--primary-light);}
+
+.app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  width:236px;flex-shrink:0;
+  background:linear-gradient(180deg,var(--primary-dark),#082e29 85%);
+  color:#EAF3F1;
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brand{
+  padding:24px 22px 18px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.brand-mark{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.brand-mark svg{width:20px;height:20px;stroke:#fff;}
+.brand-text{line-height:1.15;}
+.brand-text .name{font-weight:700;font-size:16.5px;letter-spacing:.2px;}
+.brand-text .tag{font-size:11px;color:#9FC4BC;font-weight:500;}
+
+.nav{padding:14px 12px;flex:1;overflow-y:auto;}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border-radius:9px;
+  color:#C7E0DA;font-size:14px;font-weight:500;
+  cursor:pointer;margin-bottom:2px;
+  border:1px solid transparent;
+  transition:background .15s,color .15s;
+  user-select:none;
+}
+.nav-item svg{width:17px;height:17px;stroke:currentColor;flex-shrink:0;fill:none;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav-item.active{background:var(--accent);color:#fff;box-shadow:var(--shadow);}
+.nav-foot{padding:16px 22px;border-top:1px solid rgba(255,255,255,.08);font-size:11.5px;color:#7FA79E;}
+
+/* MAIN */
+main{flex:1;min-width:0;padding:26px 34px 60px;max-width:1180px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+.topbar h1{font-size:23px;margin:0 0 3px;font-weight:700;}
+.topbar .sub{color:var(--muted);font-size:13.5px;margin:0;}
+.topbar-right{display:flex;gap:10px;align-items:center;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+.pad{padding:20px 22px;}
+
+/* Greeting header */
+.greet-card{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:22px;padding:20px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+.greet-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.greet-edit{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;}
+.greet-edit:hover{background:var(--bg);color:var(--ink);}
+.greet-edit svg{width:14px;height:14px;stroke:currentColor;}
+.greet-sub{color:var(--muted);font-size:13px;margin-top:4px;}
+.greet-actions{display:flex;gap:10px;align-items:center;}
+.btn-outline-action{position:relative;background:#fff;color:var(--primary-dark);border:1px solid var(--border);}
+.btn-outline-action:hover{background:var(--bg);}
+.count-badge{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+
+/* Quick overview */
+.qo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.qo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.qo-card{display:flex;align-items:center;gap:12px;padding:15px 16px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);cursor:pointer;transition:transform .12s;}
+.qo-card:hover{transform:translateY(-2px);}
+.qo-card .qo-icon{width:34px;height:34px;border-radius:9px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qo-card .qo-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;}
+.qo-card .qo-value{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;line-height:1;}
+.qo-card .qo-label{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:3px;}
+.qo-card.highlight{background:var(--primary-dark);border-color:var(--primary-dark);}
+.qo-card.highlight .qo-icon{background:rgba(255,255,255,.16);color:#fff;}
+.qo-card.highlight .qo-value{color:#fff;}
+.qo-card.highlight .qo-label{color:#B9D6CF;}
+@media(max-width:900px){.qo-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* Dashboard stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{padding:18px 18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.stat-card .label{font-size:12.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.stat-card .value{font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;margin-top:6px;}
+.stat-card .delta{font-size:12px;color:var(--muted);margin-top:2px;}
+.stat-card.accent-primary{border-color:#cfe6e0;}
+.stat-card .bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
+.bar.p1{background:var(--primary);}
+.bar.p2{background:var(--accent);}
+.bar.p3{background:var(--success);}
+.bar.p4{background:var(--warn);}
+
+.dash-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}.stat-grid{grid-template-columns:repeat(2,1fr);}}
+
+.section-title{font-size:15px;font-weight:700;margin:0 0 12px;font-family:'Outfit',sans-serif;}
+.list-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+.list-row:last-child{border-bottom:none;}
+.list-row .who{font-weight:600;}
+.list-row .meta{color:var(--muted);font-size:12.5px;}
+.empty-note{color:var(--muted);font-size:13.5px;padding:16px 0;text-align:center;}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:12.5px;font-weight:600;color:var(--muted);}
+.field input,.field select,.field textarea{
+  border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:14px;color:var(--ink);
+  background:#fcfdfd;outline:none;transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+.field textarea{resize:vertical;min-height:64px;}
+
+/* Checkbox groups (medical history / allergies) */
+.check-group{display:flex;flex-wrap:wrap;gap:8px;}
+.check-chip{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;cursor:pointer;background:#fcfdfd;color:var(--ink);user-select:none;transition:border-color .12s,background .12s;}
+.check-chip input{accent-color:var(--primary);width:14px;height:14px;margin:0;}
+.check-chip.checked{border-color:var(--primary);background:var(--primary-light);font-weight:600;}
+.fieldset-label{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:2px;display:block;}
+
+.form-actions{display:flex;gap:10px;margin-top:18px;}
+
+.btn{
+  border:none;border-radius:9px;padding:10px 18px;font-size:13.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:7px;transition:transform .1s, filter .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-accent:hover{filter:brightness(1.06);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);color:var(--ink);}
+.btn-danger-ghost{background:transparent;color:var(--danger);border:1px solid #f0cfc7;}
+.btn-danger-ghost:hover{background:var(--danger-light);}
+.btn-sm{padding:6px 11px;font-size:12.5px;border-radius:7px;}
+.icon-btn{width:31px;height:31px;border-radius:7px;border:1px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);}
+.icon-btn:hover{background:var(--bg);color:var(--ink);}
+.icon-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;}
+
+/* Toolbar / search */
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.search-box{position:relative;flex:1;min-width:220px;max-width:340px;}
+.search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none;}
+.search-box input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;outline:none;background:#fff;}
+.search-box input:focus{border-color:var(--primary);}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead th{
+  text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+  font-weight:700;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody td{padding:12px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#FAFCFB;}
+.name-cell{font-weight:600;}
+.sub-cell{color:var(--muted);font-size:12px;}
+.actions-cell{display:flex;gap:6px;}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11.5px;font-weight:700;}
+.badge-success{background:var(--success-light);color:var(--success);}
+.badge-warn{background:var(--warn-light);color:var(--warn);}
+.badge-danger{background:var(--danger-light);color:var(--danger);}
+.badge-muted{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
+.badge-primary{background:var(--primary-light);color:var(--primary);}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,25,23,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal.wide{max-width:720px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);}
+.modal-head h3{margin:0;font-size:16.5px;}
+.modal-body{padding:20px 22px;}
+.modal-close{width:28px;height:28px;border-radius:7px;border:none;background:var(--bg);color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.modal-close svg{width:14px;height:14px;stroke:currentColor;}
+
+/* Tooth chart */
+.tooth-toolbar{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.legend-dot{width:12px;height:12px;border-radius:4px;border:1px solid rgba(0,0,0,.08);}
+.arch{display:flex;justify-content:center;gap:6px;margin:22px 0;flex-wrap:wrap;}
+.tooth{
+  width:38px;height:48px;border-radius:8px;border:2px solid var(--border);background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;transition:transform .1s;position:relative;
+}
+.tooth:hover{transform:translateY(-3px);}
+.tooth .num{font-size:10px;color:var(--muted);font-weight:700;}
+.tooth svg{width:16px;height:16px;}
+.arch-label{text-align:center;font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:4px 0;}
+
+.status-picker{position:absolute;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;z-index:50;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:230px;}
+.status-picker button{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;border:none;background:transparent;font-size:12px;text-align:left;color:var(--ink);}
+.status-picker button:hover{background:var(--bg);}
+.status-picker .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+/* Line items */
+.item-row{display:grid;grid-template-columns:1fr 70px 100px 90px 32px;gap:8px;align-items:center;margin-bottom:8px;}
+.item-row input{border:1px solid var(--border);border-radius:7px;padding:8px 9px;font-size:13px;width:100%;}
+.item-row .item-total{font-size:13px;font-weight:600;text-align:right;padding-right:4px;}
+.item-remove{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--danger);display:flex;align-items:center;justify-content:center;}
+.item-head{display:grid;grid-template-columns:1fr 70px 100px 90px 32px;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:6px;}
+
+.bill-summary{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:flex;justify-content:flex-end;}
+.bill-summary table{width:280px;}
+.bill-summary td{padding:6px 4px;border:none;font-size:13.5px;}
+.bill-summary td:last-child{text-align:right;font-weight:600;}
+.bill-summary tr.total td{font-size:16px;font-weight:800;border-top:1px solid var(--border);padding-top:10px;}
+.bill-summary tr.balance td{color:var(--accent);font-weight:800;}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary-dark);color:#fff;padding:13px 20px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:200;display:flex;align-items:center;gap:9px;animation:toastIn .25s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* LOGIN SCREEN */
+#loginScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#061412 0%,#0A3E38 50%,#0E5C52 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;
+}
+.login-card{
+  background:#fff;border-radius:20px;padding:44px 40px;
+  width:100%;max-width:420px;
+  box-shadow:0 30px 80px rgba(0,0,0,.4);
+  animation:loginSlide .35s ease;
+}
+@keyframes loginSlide{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.login-brand-mark{
+  width:46px;height:46px;border-radius:12px;
+  background:var(--accent);display:flex;align-items:center;justify-content:center;
+}
+.login-brand-mark svg{width:26px;height:26px;stroke:#fff;}
+.login-brand-text .lname{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--primary-dark);}
+.login-brand-text .ltag{font-size:12px;color:var(--muted);font-weight:500;margin-top:2px;}
+.login-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.login-field label{font-size:12.5px;font-weight:600;color:var(--muted);}
+.login-field input{
+  border:1px solid var(--border);border-radius:9px;padding:11px 14px;
+  font-size:14px;color:var(--ink);background:#fcfdfd;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.login-field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+.login-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  background:var(--primary);color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:filter .15s,transform .1s;
+  margin-top:6px;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.login-btn:active{transform:scale(.98);}
+.login-error{color:var(--danger);font-size:13px;font-weight:600;margin-top:10px;display:none;padding:9px 12px;background:var(--danger-light);border-radius:8px;}
+.login-footer{text-align:center;margin-top:20px;font-size:12px;color:var(--muted);}
+.login-pw-wrap{position:relative;}
+.login-pw-wrap input{width:100%;padding-right:40px;}
+.login-pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:0;display:flex;align-items:center;}
+.login-pw-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;}
+
+/* SIDEBAR LOGOUT BTN */
+.logout-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 12px;border-radius:9px;
+  color:#ffb3a0;font-size:13px;font-weight:600;
+  cursor:pointer;border:1px solid rgba(255,255,255,.1);
+  background:rgba(193,67,46,.15);
+  transition:background .15s,color .15s;
+  margin-bottom:10px;
+  user-select:none;
+}
+.logout-btn:hover{background:rgba(193,67,46,.35);color:#fff;}
+.logout-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;flex-shrink:0;}
+
+.rx-row{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.3fr 32px;gap:8px;margin-bottom:8px;}
+.rx-row input{border:1px solid var(--border);border-radius:7px;padding:8px 9px;font-size:13px;width:100%;}
+.rx-head{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.3fr 32px;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+
+/* Printable receipt */
+#printArea{display:none;}
+.receipt-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--primary);padding-bottom:14px;margin-bottom:16px;}
+.receipt-clinic{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;color:var(--primary-dark);}
+.receipt-clinic .sub{font-family:'Inter';font-weight:500;font-size:11.5px;color:var(--muted);margin-top:2px;}
+.receipt-meta{text-align:right;font-size:12.5px;color:var(--muted);}
+.receipt-meta b{color:var(--ink);}
+.receipt-block{display:flex;justify-content:space-between;margin-bottom:16px;font-size:13px;}
+.receipt-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.receipt-table th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid #ccc;padding:7px 4px;}
+.receipt-table td{padding:8px 4px;border-bottom:1px solid #eee;font-size:13px;}
+.receipt-table td:last-child,.receipt-table th:last-child{text-align:right;}
+
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:20px;}
+}
+
+@media(max-width:760px){
+  .sidebar{position:fixed;left:-236px;z-index:60;transition:left .2s;}
+  .sidebar.open{left:0;}
+  main{padding:20px 16px 50px;}
+  .form-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .item-row,.item-head,.rx-row,.rx-head{grid-template-columns:1fr;}
+}
+.menu-toggle{display:none;}
+@media(max-width:760px){.menu-toggle{display:flex;}}
+
+/* CLEARPATH 3D ALIGNER SETUP STYLES */
+.aligner-container{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;}
+@media(max-width:1024px){.aligner-container{grid-template-columns:1fr;}}
+.aligner-viewer-card{background:#081A17;border-radius:var(--radius);border:1px solid #1A3833;color:#EAF3F1;padding:18px;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.3);}
+.viewer-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+.viewer-badge{background:rgba(14,92,82,0.45);border:1px solid #1F6B60;color:#64E2D0;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;}
+.view-angles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;background:rgba(255,255,255,0.04);padding:6px;border-radius:9px;border:1px solid rgba(255,255,255,0.06);}
+.angle-btn{background:transparent;border:1px solid transparent;color:#A3C5BF;padding:6px 11px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease;display:flex;align-items:center;gap:5px;}
+.angle-btn:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.angle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(221,107,59,0.35);}
+.canvas-viewport{width:100%;height:370px;background:radial-gradient(circle at center,#122E2A 0%,#061412 100%);border-radius:10px;border:1px solid rgba(255,255,255,0.08);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.stage-controls{margin-top:14px;background:rgba(255,255,255,0.04);padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);}
+.stage-slider-row{display:flex;align-items:center;gap:12px;margin-top:6px;}
+.stage-slider-row input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer;height:6px;}
+.meas-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.meas-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.meas-box{background:var(--bg);border:1px solid var(--border);padding:10px 12px;border-radius:8px;}
+.meas-box .m-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;}
+.meas-box .m-val{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--ink);margin-top:2px;}
+.meas-box .m-sub{font-size:11px;color:var(--success);font-weight:600;}
+</style>
+</head>
+<body>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-1.2 0-2-2.6-2.4-5.4C9.3 13 8.6 11 7.2 11c-1.6 0-2.5 1.8-2.7 3.6C4.2 17 3.8 21 3 21c-1.4 0-1.8-4.4-1.8-7.2C1.2 8.4 4 3 8.5 3c1.5 0 2.4.8 3.5.8S13.9 3 15.4 3C19.9 3 22.7 8.4 22.7 13.8c0 2.8-.4 7.2-1.8 7.2-.8 0-1.2-4-1.5-6.4C19.2 12.8 18.3 11 16.7 11c-1.4 0-2.1 2-2.4 4.6C14 18.4 13.2 21 12 21z"/></svg>
+      </div>
+      <div class="login-brand-text">
+        <div class="lname" id="loginClinicName">Sehat Dental</div>
+        <div class="ltag">Clinic Manager · Secure Login</div>
+      </div>
+    </div>
+    <div class="login-title">Welcome Back 👋</div>
+    <div class="login-sub">Please enter your credentials to continue.</div>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="loginUser" autocomplete="username" placeholder="Enter username" required>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <div class="login-pw-wrap">
+          <input type="password" id="loginPass" autocomplete="current-password" placeholder="Enter password" required>
+          <button type="button" class="login-pw-toggle" onclick="togglePwVis()" title="Show/Hide password">
+            <svg id="pwEyeIcon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="login-error" id="loginError">❌ Incorrect username or password. Please try again.</div>
+      <button type="submit" class="login-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In to Clinic
+      </button>
+    </form>
+    <div class="login-footer">🔒 Your data is encrypted and stored locally on this device.</div>
+  </div>
+</div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-1.2 0-2-2.6-2.4-5.4C9.3 13 8.6 11 7.2 11c-1.6 0-2.5 1.8-2.7 3.6C4.2 17 3.8 21 3 21c-1.4 0-1.8-4.4-1.8-7.2C1.2 8.4 4 3 8.5 3c1.5 0 2.4.8 3.5.8S13.9 3 15.4 3C19.9 3 22.7 8.4 22.7 13.8c0 2.8-.4 7.2-1.8 7.2-.8 0-1.2-4-1.5-6.4C19.2 12.8 18.3 11 16.7 11c-1.4 0-2.1 2-2.4 4.6C14 18.4 13.2 21 12 21z"/></svg></div>
+      <div class="brand-text"><div class="name" id="brandName">Sehat Dental</div><div class="tag">Clinic Manager</div></div>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div style="padding:12px 12px 4px;">
+      <div class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </div>
+    </div>
+    <div class="nav-foot" id="navFoot">v1.0 · All data stored securely for your account</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <button class="menu-toggle icon-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" style="margin-bottom:8px;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p class="sub" id="pageSub">Overview of today's clinic activity</p>
+      </div>
+      <div class="topbar-right" id="topbarRight"></div>
+    </div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<div id="printArea"></div>
+
+<script>
+/* ============ ICONS ============ */
+const ICONS = {
+  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+  reg:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  appt:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  tooth:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-1.2 0-2-2.6-2.4-5.4C9.3 13 8.6 11 7.2 11c-1.6 0-2.5 1.8-2.7 3.6C4.2 17 3.8 21 3 21c-1.4 0-1.8-4.4-1.8-7.2C1.2 8.4 4 3 8.5 3c1.5 0 2.4.8 3.5.8S13.9 3 15.4 3C19.9 3 22.7 8.4 22.7 13.8c0 2.8-.4 7.2-1.8 7.2-.8 0-1.2-4-1.5-6.4C19.2 12.8 18.3 11 16.7 11c-1.4 0-2.1 2-2.4 4.6C14 18.4 13.2 21 12 21z"/></svg>',
+  plan:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3M8 11h8M8 15h5"/></svg>',
+  rx:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5-8-8a5.5 5.5 0 1 1 7.78-7.78l8 8a5.5 5.5 0 1 1-7.78 7.78Z"/><path d="m8.5 8.5 7 7"/></svg>',
+  bill:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 1z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg>',
+  print:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><rect x="6" y="14" width="12" height="8"/><path d="M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+  alertCircle:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>',
+  hourglass:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14M5 22h14M5 2c0 6 5 7 7 10-2 3-7 4-7 10M19 2c0 6-5 7-7 10 2 3 7 4 7 10"/></svg>',
+  checkSquare:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  trending:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>',
+  checkCircle:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5"/></svg>',
+  repeat:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  xCircle:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg>',
+  archive:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M10 13h4"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9.5v5l4.5-2.5Z" fill="currentColor" stroke="none"/></svg>',
+  cube:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>',
+  ruler:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M6 12v-4M10 12v-2M14 12v-4M18 12v-2"/></svg>',
+  layers:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+  excel:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13l3 4 3-4"/><path d="M14 13l-3 4-3-4"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+  download:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  xray:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>',
+};
+
+const NAV = [
+  {id:'dashboard', label:'Dashboard', icon:'dashboard', sub:"Overview of today's clinic activity"},
+  {id:'register', label:'Patient Registration', icon:'reg', sub:'Add a new patient to the clinic'},
+  {id:'patients', label:'Patient List', icon:'list', sub:'Search, view, edit and manage patients'},
+  {id:'appointments', label:'Appointments', icon:'appt', sub:'Schedule and track patient visits'},
+  {id:'toothchart', label:'Dental / Tooth Chart', icon:'tooth', sub:'Interactive chart per patient'},
+  {id:'treatment', label:'Treatment Plan', icon:'plan', sub:'Plan and track ongoing treatments'},
+  {id:'aligners', label:'ClearPath 3D Setup', icon:'cube', sub:'ClearPath 3D aligner setup, views & tooth measurements'},
+  {id:'opg', label:'OPG Panoramic X-Ray', icon:'xray', sub:'Panoramic OPG dental X-ray, jaw radiograph & 2D diagnosis'},
+  {id:'prescription', label:'Prescription', icon:'rx', sub:'Create and print prescriptions'},
+  {id:'billing', label:'Billing & Receipt', icon:'bill', sub:'Bills, payments and printable receipts'},
+];
+
+/* ============ STATE ============ */
+let DB = {
+  patients:[], appointments:[], toothCharts:{}, treatmentPlans:[], prescriptions:[], bills:[], alignerSetups:{}, opgScans:{},
+  seq:1, billSeq:1,
+  lastEmailSentTime: null, lastDailyEmailDate: null,
+  settings:{
+    clinicName:'Sehat Dental',
+    doctorName:'Dr. Waqar',
+    clinicEmail:'',
+    doctorEmail:'Waqar61@live.com',
+    autoEmail:'Waqar61@live.com',
+    autoEmailEnabled:true,
+    autoEmailMode:'change',
+    emailjsServiceId:'',
+    emailjsTemplateId:'',
+    emailjsPublicKey:''
+  }
+};
+let isLoggedIn = false;
+let currentSection = 'dashboard';
+let saveTimer = null;
+let autoEmailTimer = null;
+let isAutoSendingEmail = false;
+
+function uid(prefix){ return prefix + '-' + String(DB.seq++).padStart(4,'0'); }
+
+async function loadDB(){
+  try{
+    if(window.storage && window.storage.get){
+      const res = await window.storage.get('clinic-db', false);
+      if(res && res.value){ DB = Object.assign(DB, JSON.parse(res.value)); }
+    } else {
+      const local = localStorage.getItem('clinic-db');
+      if(local){ DB = Object.assign(DB, JSON.parse(local)); }
+    }
+  }catch(e){
+    try {
+      const local = localStorage.getItem('clinic-db');
+      if(local){ DB = Object.assign(DB, JSON.parse(local)); }
+    } catch(err){}
+  }
+  if(!DB.settings) DB.settings = {};
+  if(!DB.settings.clinicName) DB.settings.clinicName = 'Sehat Dental';
+  if(!DB.settings.doctorName || DB.settings.doctorName === 'Doctor') DB.settings.doctorName = 'Dr. Waqar';
+  if(!DB.settings.doctorEmail) DB.settings.doctorEmail = 'Waqar61@live.com';
+  if(!DB.settings.autoEmail) DB.settings.autoEmail = 'Waqar61@live.com';
+  if(DB.settings.autoEmailEnabled === undefined) DB.settings.autoEmailEnabled = true;
+  if(!DB.settings.autoEmailMode) DB.settings.autoEmailMode = 'change';
+
+  document.getElementById('brandName').textContent = DB.settings.clinicName || 'Sehat Dental';
+
+  setTimeout(()=>{ checkDailyAutoEmail(); }, 2000);
+}
+
+function scheduleAutoEmailSync(){
+  if(!DB.settings || DB.settings.autoEmailEnabled === false) return;
+  if(DB.settings.autoEmailMode === 'manual') return;
+
+  clearTimeout(autoEmailTimer);
+  // Debounce auto-send 20 seconds after the last save to avoid spamming
+  autoEmailTimer = setTimeout(()=>{
+    sendAutoDataEmail(false);
+  }, 20000);
+}
+
+function checkDailyAutoEmail(){
+  if(!DB.settings || DB.settings.autoEmailEnabled === false) return;
+  if(DB.settings.autoEmailMode !== 'daily') return;
+  const today = todayISO();
+  if(DB.lastDailyEmailDate !== today){
+    sendAutoDataEmail(false);
+  }
+}
+
+function openSettingsForm(){
+  if(!DB.settings) DB.settings = {};
+  const clinicEmail = DB.settings.clinicEmail || '';
+  const doctorEmail = DB.settings.doctorEmail || 'Waqar61@live.com';
+  const autoEmail = DB.settings.autoEmail || 'Waqar61@live.com';
+  const autoEmailEnabled = DB.settings.autoEmailEnabled !== false;
+  const autoEmailMode = DB.settings.autoEmailMode || 'change';
+
+  openModal('Clinic & Email Settings', `
+    <form id="settingsForm">
+      <div class="form-grid">
+        <div class="field full"><label>Clinic Name</label><input name="clinicName" value="${esc(DB.settings.clinicName||'Sehat Dental')}" placeholder="e.g. Sehat Dental Clinic"></div>
+        <div class="field full"><label>Doctor Name</label><input name="doctorName" value="${esc(DB.settings.doctorName||'Doctor')}" placeholder="e.g. Dr. Waqar"></div>
+        <div class="field"><label>Clinic Email</label><input name="clinicEmail" type="email" value="${esc(clinicEmail)}" placeholder="info@sehatdental.com"></div>
+        <div class="field"><label>Doctor Email</label><input name="doctorEmail" type="email" value="${esc(doctorEmail)}" placeholder="Waqar61@live.com"></div>
+        
+        <div style="grid-column:1/-1;border:1px solid var(--primary);background:var(--primary-light);padding:14px 16px;border-radius:10px;margin-top:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+            <span style="font-weight:700;color:var(--primary-dark);font-size:14px;display:flex;align-items:center;gap:7px;">
+              ${ICONS.mail} Auto Data Email Sync (Waqar61@live.com)
+            </span>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--primary-dark);cursor:pointer;">
+              <input type="checkbox" name="autoEmailEnabled" ${autoEmailEnabled?'checked':''} style="width:16px;height:16px;accent-color:var(--primary);">
+              Enable Auto-Send
+            </label>
+          </div>
+          <p style="font-size:12.5px;color:var(--ink);margin:0 0 12px;line-height:1.4;">
+            Automatically sends complete clinic patient records, appointments, revenue summaries, and full database backups directly to your email in the background.
+          </p>
+          <div class="form-grid" style="margin-bottom:10px;">
+            <div class="field">
+              <label style="color:var(--primary-dark);font-weight:600;">Destination Backup Email *</label>
+              <input name="autoEmail" type="email" required value="${esc(autoEmail)}" placeholder="Waqar61@live.com" style="background:#fff;">
+            </div>
+            <div class="field">
+              <label style="color:var(--primary-dark);font-weight:600;">Auto-Send Schedule</label>
+              <select name="autoEmailMode" style="background:#fff;">
+                <option value="change" ${autoEmailMode==='change'?'selected':''}>Auto: Send in background after updates</option>
+                <option value="daily" ${autoEmailMode==='daily'?'selected':''}>Daily: Send automatic summary on clinic start</option>
+                <option value="manual" ${autoEmailMode==='manual'?'selected':''}>Manual: Only when clicking Auto Send button</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:12px;color:var(--muted);">Last sent: <b>${DB.lastEmailSentTime ? fmtDate(DB.lastEmailSentTime.slice(0,10)) + ' ' + new Date(DB.lastEmailSentTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'Ready / Click button to send'}</b></span>
+            <button type="button" class="btn btn-outline-action btn-sm" onclick="sendAutoDataEmail(true)" style="background:#fff;">${ICONS.mail} Send Test Backup to ${esc(autoEmail)} Now</button>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;">
+          <span class="fieldset-label" style="font-weight:700;color:var(--primary-dark);">EmailJS Integration (Optional for Custom SMTP)</span>
+          <p style="font-size:12px;color:var(--muted);margin:2px 0 10px;">Direct background email dispatch to <b>${esc(autoEmail)}</b> works automatically out-of-the-box. You can also link EmailJS credentials here if desired.</p>
+        </div>
+        <div class="field"><label>EmailJS Service ID</label><input name="emailjsServiceId" value="${esc(DB.settings.emailjsServiceId||'')}" placeholder="service_xxxx"></div>
+        <div class="field"><label>EmailJS Template ID</label><input name="emailjsTemplateId" value="${esc(DB.settings.emailjsTemplateId||'')}" placeholder="template_xxxx"></div>
+        <div class="field full"><label>EmailJS Public Key</label><input name="emailjsPublicKey" value="${esc(DB.settings.emailjsPublicKey||'')}" placeholder="public_xxxx"></div>
+      </div>
+      <div class="form-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal();openRestoreBackupModal();">📥 Restore from JSON Backup</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" type="submit">Save Settings</button>
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </form>`, true);
+  document.getElementById('settingsForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    DB.settings.clinicName = f.get('clinicName').trim() || 'Sehat Dental';
+    DB.settings.doctorName = f.get('doctorName').trim() || 'Dr. Waqar';
+    DB.settings.clinicEmail = f.get('clinicEmail').trim();
+    DB.settings.doctorEmail = f.get('doctorEmail').trim() || 'Waqar61@live.com';
+    DB.settings.autoEmail = f.get('autoEmail').trim() || 'Waqar61@live.com';
+    DB.settings.autoEmailEnabled = f.get('autoEmailEnabled') !== null;
+    DB.settings.autoEmailMode = f.get('autoEmailMode') || 'change';
+    DB.settings.emailjsServiceId = f.get('emailjsServiceId').trim();
+    DB.settings.emailjsTemplateId = f.get('emailjsTemplateId').trim();
+    DB.settings.emailjsPublicKey = f.get('emailjsPublicKey').trim();
+    saveDB(); document.getElementById('brandName').textContent = DB.settings.clinicName;
+    closeModal(); showToast('Settings saved'); if(currentSection==='dashboard') renderDashboard();
+  });
+}
+function saveDB(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      if(window.storage && window.storage.set){
+        await window.storage.set('clinic-db', JSON.stringify(DB), false);
+      }
+      try{ localStorage.setItem('clinic-db', JSON.stringify(DB)); }catch(err){}
+      scheduleAutoEmailSync();
+    }
+    catch(e){ console.error('Save failed', e); showToast('Could not save — check connection', true); }
+  }, 200);
+}
+
+function showToast(msg, isError){
+  const root = document.getElementById('toastRoot');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = isError ? 'var(--danger)' : 'var(--primary-dark)';
+  t.innerHTML = (isError? ICONS.x : ICONS.check) + '<span>'+esc(msg)+'</span>';
+  root.appendChild(t);
+  setTimeout(()=>{ t.remove(); }, 2600);
+}
+
+/* ============ EXCEL & EMAIL HELPERS ============ */
+function exportAllToExcel(){
+  try{
+    if(typeof XLSX === 'undefined'){
+      exportCSVFallback();
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Patients
+    const patData = DB.patients.map(p=>({
+      'Patient ID': p.id,
+      'Full Name': p.name,
+      'Phone': p.phone,
+      'Age': p.age || '',
+      'Gender': p.gender || '',
+      'Address': p.address || '',
+      'Medical History': (p.medicalHistory?.conditions||[]).join(', ') + (p.medicalHistory?.otherText? ` (${p.medicalHistory.otherText})`:''),
+      'Allergies': (p.allergyInfo?.types||[]).join(', ') + (p.allergyInfo?.details? ` (${p.allergyInfo.details})`:''),
+      'Registered Date': p.regDate || ''
+    }));
+    const wsPatients = XLSX.utils.json_to_sheet(patData);
+    XLSX.utils.book_append_sheet(wb, wsPatients, 'Patients');
+
+    // Sheet 2: Appointments
+    const apptData = DB.appointments.map(a=>({
+      'Appointment ID': a.id,
+      'Patient Name': a.patientName,
+      'Patient ID': a.patientId,
+      'Date': a.date,
+      'Time': a.time,
+      'Doctor': a.doctor || '',
+      'Reason': a.reason || '',
+      'Status': a.status || ''
+    }));
+    const wsAppts = XLSX.utils.json_to_sheet(apptData);
+    XLSX.utils.book_append_sheet(wb, wsAppts, 'Appointments');
+
+    // Sheet 3: Billing & Revenue
+    const billData = DB.bills.map(b=>{
+      const sub = billSub(b);
+      const discAmt = billDiscAmount(b);
+      const payable = billTotal(b);
+      const received = Number(b.paid)||0;
+      const remaining = Math.max(0, payable - received);
+      return {
+        'Bill No': b.billNo,
+        'Patient Name': b.patientName,
+        'Patient ID': b.patientId,
+        'Clinic': b.clinic || '',
+        'Doctor': b.doctor || '',
+        'Date': b.date,
+        'Subtotal (Rs)': sub,
+        'Discount (Rs)': discAmt,
+        'Total Payable (Rs)': payable,
+        'Paid Amount (Rs)': received,
+        'Remaining Due (Rs)': remaining,
+        'Payment Method': b.paymentMethod || '',
+        'Payment Status': received >= payable && payable > 0 ? 'Paid' : (received > 0 ? 'Partial' : 'Pending'),
+        'Due Date': b.dueDate || ''
+      };
+    });
+    const wsBills = XLSX.utils.json_to_sheet(billData);
+    XLSX.utils.book_append_sheet(wb, wsBills, 'Billing');
+
+    // Sheet 4: Prescriptions
+    const rxRows = [];
+    DB.prescriptions.forEach(rx=>{
+      (rx.medicines||[]).forEach(m=>{
+        rxRows.push({
+          'Prescription ID': rx.id,
+          'Patient Name': rx.patientName,
+          'Doctor': rx.doctor || '',
+          'Date': rx.date,
+          'Medicine Name': m.name,
+          'Dosage': m.dosage,
+          'Duration': m.duration,
+          'Instructions': m.instructions
+        });
+      });
+    });
+    const wsRx = XLSX.utils.json_to_sheet(rxRows);
+    XLSX.utils.book_append_sheet(wb, wsRx, 'Prescriptions');
+
+    // Sheet 5: Treatment Plans
+    const tpRows = [];
+    DB.treatmentPlans.forEach(tp=>{
+      (tp.treatments||[]).forEach(t=>{
+        tpRows.push({
+          'Plan ID': tp.id,
+          'Patient Name': tp.patientName,
+          'Date': tp.date,
+          'Treatment Name': t.name,
+          'Cost (Rs)': t.cost,
+          'Status': t.status
+        });
+      });
+    });
+    const wsTP = XLSX.utils.json_to_sheet(tpRows);
+    XLSX.utils.book_append_sheet(wb, wsTP, 'Treatment Plans');
+
+    // Sheet 6: OPG Radiographs
+    const opgRows = [];
+    Object.entries(DB.opgScans||{}).forEach(([pid, scan])=>{
+      const pat = DB.patients.find(p=>p.id===pid);
+      opgRows.push({
+        'Patient ID': pid,
+        'Patient Name': pat ? pat.name : '',
+        'Scan Date': scan.date || '',
+        'Doctor': scan.doctor || '',
+        'Maxilla Findings': scan.findings?.maxilla || '',
+        'Mandible Findings': scan.findings?.mandible || '',
+        'TMJ Findings': scan.findings?.tmj || '',
+        'Wisdom Teeth': scan.findings?.wisdomTeeth || '',
+        'Bone & Caries': scan.findings?.cariesBone || ''
+      });
+    });
+    const wsOPG = XLSX.utils.json_to_sheet(opgRows);
+    XLSX.utils.book_append_sheet(wb, wsOPG, 'OPG Radiographs');
+
+    const fileName = `${(DB.settings.clinicName||'Sehat_Dental').replace(/\s+/g,'_')}_All_Data_${todayISO()}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    showToast('Excel workbook exported successfully!');
+  }catch(err){
+    console.error(err);
+    exportCSVFallback();
+  }
+}
+
+function exportPatientsToExcel(){
+  if(typeof XLSX !== 'undefined'){
+    const patData = DB.patients.map(p=>({
+      'Patient ID': p.id,
+      'Full Name': p.name,
+      'Phone': p.phone,
+      'Age': p.age || '',
+      'Gender': p.gender || '',
+      'Address': p.address || '',
+      'Medical History': (p.medicalHistory?.conditions||[]).join(', ') + (p.medicalHistory?.otherText? ` (${p.medicalHistory.otherText})`:''),
+      'Allergies': (p.allergyInfo?.types||[]).join(', ') + (p.allergyInfo?.details? ` (${p.allergyInfo.details})`:''),
+      'Registered Date': p.regDate || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(patData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Patients');
+    XLSX.writeFile(wb, `Patients_${todayISO()}.xlsx`);
+    showToast('Patients list exported to Excel');
+  } else {
+    exportSingleCSV('Patients', DB.patients.map(p=>[p.id, p.name, p.phone, p.age||'', p.gender||'', p.regDate||'']), ['ID','Name','Phone','Age','Gender','Registered Date']);
+  }
+}
+
+function exportAppointmentsToExcel(){
+  if(typeof XLSX !== 'undefined'){
+    const apptData = DB.appointments.map(a=>({
+      'ID': a.id,
+      'Patient Name': a.patientName,
+      'Date': a.date,
+      'Time': a.time,
+      'Doctor': a.doctor||'',
+      'Reason': a.reason||'',
+      'Status': a.status||''
+    }));
+    const ws = XLSX.utils.json_to_sheet(apptData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Appointments');
+    XLSX.writeFile(wb, `Appointments_${todayISO()}.xlsx`);
+    showToast('Appointments exported to Excel');
+  } else {
+    exportSingleCSV('Appointments', DB.appointments.map(a=>[a.id, a.patientName, a.date, a.time, a.doctor||'', a.reason||'', a.status||'']), ['ID','Patient','Date','Time','Doctor','Reason','Status']);
+  }
+}
+
+function exportBillsToExcel(){
+  if(typeof XLSX !== 'undefined'){
+    const billData = DB.bills.map(b=>{
+      const sub = billSub(b);
+      const discAmt = billDiscAmount(b);
+      const payable = billTotal(b);
+      const received = Number(b.paid)||0;
+      return {
+        'Bill No': b.billNo,
+        'Patient Name': b.patientName,
+        'Date': b.date,
+        'Subtotal': sub,
+        'Discount': discAmt,
+        'Payable': payable,
+        'Paid': received,
+        'Balance': Math.max(0, payable - received),
+        'Payment Method': b.paymentMethod||'',
+        'Status': received >= payable && payable > 0 ? 'Paid' : (received > 0 ? 'Partial' : 'Pending'),
+        'Due Date': b.dueDate||''
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(billData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Billing');
+    XLSX.writeFile(wb, `Billing_${todayISO()}.xlsx`);
+    showToast('Billing data exported to Excel');
+  } else {
+    exportSingleCSV('Billing', DB.bills.map(b=>[b.billNo, b.patientName, b.date, billTotal(b), b.paid||0, Math.max(0, billTotal(b)-(b.paid||0)), b.paymentMethod||'']), ['Bill No','Patient','Date','Total','Paid','Balance','Method']);
+  }
+}
+
+function exportPrescriptionsToExcel(){
+  if(typeof XLSX !== 'undefined'){
+    const rxRows = [];
+    DB.prescriptions.forEach(rx=>{
+      (rx.medicines||[]).forEach(m=>{
+        rxRows.push({
+          'Rx ID': rx.id,
+          'Patient Name': rx.patientName,
+          'Doctor': rx.doctor || '',
+          'Date': rx.date,
+          'Medicine': m.name,
+          'Dosage': m.dosage,
+          'Duration': m.duration,
+          'Instructions': m.instructions
+        });
+      });
+    });
+    const ws = XLSX.utils.json_to_sheet(rxRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Prescriptions');
+    XLSX.writeFile(wb, `Prescriptions_${todayISO()}.xlsx`);
+    showToast('Prescriptions exported to Excel');
+  } else {
+    const rows = [];
+    DB.prescriptions.forEach(rx=>(rx.medicines||[]).forEach(m=>rows.push([rx.id, rx.patientName, rx.date, m.name, m.dosage, m.duration, m.instructions])));
+    exportSingleCSV('Prescriptions', rows, ['Rx ID','Patient','Date','Medicine','Dosage','Duration','Instructions']);
+  }
+}
+
+function exportCSVFallback(){
+  const rows = [];
+  rows.push(['--- PATIENTS ---']);
+  rows.push(['ID','Name','Phone','Age','Gender','Reg Date']);
+  DB.patients.forEach(p=> rows.push([p.id, p.name, p.phone, p.age||'', p.gender||'', p.regDate||'']));
+  rows.push([]);
+  rows.push(['--- BILLING ---']);
+  rows.push(['Bill No','Patient','Date','Total','Paid','Balance']);
+  DB.bills.forEach(b=> rows.push([b.billNo, b.patientName, b.date, billTotal(b), b.paid||0, Math.max(0, billTotal(b)-(b.paid||0))]));
+  
+  exportSingleCSV('Clinic_Data_Export', rows);
+}
+
+function exportSingleCSV(filename, rows, headers){
+  let csvContent = '\uFEFF';
+  if(headers) csvContent += headers.map(h=>`"${String(h).replace(/"/g,'""')}"`).join(',') + '\n';
+  rows.forEach(r=>{
+    csvContent += r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',') + '\n';
+  });
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}_${todayISO()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${filename} exported to CSV`);
+}
+
+function openExcelExportModal(){
+  openModal('📊 Export Clinic Data to Excel', `
+    <div style="font-size:14px;color:var(--muted);margin-bottom:18px;">Select which data you would like to export as Microsoft Excel spreadsheet (.xlsx):</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <button class="btn btn-primary" style="padding:14px;justify-content:center;grid-column:1/-1;" onclick="exportAllToExcel();closeModal();">
+        ${ICONS.excel} Export ALL Data (Multi-Sheet Excel Workbook)
+      </button>
+      <button class="btn btn-outline-action" style="padding:12px;justify-content:center;" onclick="exportPatientsToExcel();closeModal();">
+        ${ICONS.reg} Patients List (.xlsx)
+      </button>
+      <button class="btn btn-outline-action" style="padding:12px;justify-content:center;" onclick="exportAppointmentsToExcel();closeModal();">
+        ${ICONS.appt} Appointments (.xlsx)
+      </button>
+      <button class="btn btn-outline-action" style="padding:12px;justify-content:center;" onclick="exportBillsToExcel();closeModal();">
+        ${ICONS.bill} Billing & Revenue (.xlsx)
+      </button>
+      <button class="btn btn-outline-action" style="padding:12px;justify-content:center;" onclick="exportPrescriptionsToExcel();closeModal();">
+        ${ICONS.rx} Prescriptions (.xlsx)
+      </button>
+    </div>
+    <div class="form-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>`);
+}
+
+function openEmailModal(options){
+  const { to='', subject='', body='', title='Send Email' } = options;
+  const isEmailJSConfigured = DB.settings && DB.settings.emailjsServiceId && DB.settings.emailjsPublicKey;
+  const defaultTo = to || (DB.settings && (DB.settings.autoEmail || DB.settings.doctorEmail)) || 'Waqar61@live.com';
+  
+  openModal(title, `
+    <form id="emailDispatchForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Recipient Email Address *</label>
+          <input type="email" name="toEmail" required value="${esc(defaultTo)}" placeholder="Waqar61@live.com or patient@example.com">
+        </div>
+        <div class="field full">
+          <label>Subject *</label>
+          <input type="text" name="subject" required value="${esc(subject)}" placeholder="e.g. Receipt for your dental visit">
+        </div>
+        <div class="field full">
+          <label>Email Body / Content</label>
+          <textarea name="body" rows="9" style="font-family:monospace;font-size:13px;line-height:1.4;">${esc(body)}</textarea>
+        </div>
+      </div>
+      
+      <div style="background:var(--bg);padding:10px 12px;border-radius:8px;margin-top:14px;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span>Dispatch Method: <b>Direct Background Send (FormSubmit / EmailJS) & Mail App</b></span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal();openSettingsForm();">⚙️ Configure Email Settings</button>
+      </div>
+
+      <div class="form-actions" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-primary" type="submit">${ICONS.mail} Send Email Directly</button>
+        <button type="button" class="btn btn-outline-action" onclick="sendViaDefaultMailClient()">${ICONS.mail} Open in Mail App</button>
+        <button type="button" class="btn btn-ghost" onclick="copyEmailText(this)">📋 Copy Text</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`, true);
+
+  document.getElementById('emailDispatchForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const toEmail = f.get('toEmail').trim();
+    const sub = f.get('subject').trim();
+    const content = f.get('body').trim();
+
+    if(!toEmail){ showToast('Please enter recipient email', true); return; }
+
+    if(isEmailJSConfigured && typeof emailjs !== 'undefined'){
+      try{
+        showToast('Sending email via EmailJS...');
+        emailjs.init(DB.settings.emailjsPublicKey);
+        await emailjs.send(DB.settings.emailjsServiceId, DB.settings.emailjsTemplateId, {
+          to_email: toEmail,
+          subject: sub,
+          message: content,
+          clinic_name: DB.settings.clinicName || 'Sehat Dental',
+          doctor_name: DB.settings.doctorName || 'Doctor'
+        });
+        showToast('Email sent successfully!');
+        closeModal();
+        return;
+      } catch(err){
+        console.error('EmailJS send error:', err);
+      }
+    }
+
+    try {
+      showToast('Sending email directly in background...');
+      const resp = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(toEmail)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: sub,
+          Clinic: DB.settings.clinicName || 'Sehat Dental',
+          Doctor: 'Dr. ' + (DB.settings.doctorName || 'Doctor'),
+          Recipient: toEmail,
+          Message: content
+        })
+      });
+      const data = await resp.json();
+      if(resp.ok && (data.success === 'true' || data.success === true)){
+        showToast(`Email sent successfully to ${toEmail}!`);
+        closeModal();
+        return;
+      } else if(data && data.message && data.message.toLowerCase().includes('activation')){
+        showToast(`Activation link sent to ${toEmail}. Please click activate in your email once.`, false);
+        closeModal();
+        return;
+      }
+    } catch(errFetch){
+      console.warn('Background send failed, fallback to mailto:', errFetch);
+    }
+
+    const mailtoUrl = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(content)}`;
+    window.open(mailtoUrl, '_blank');
+    showToast('Mail application opened with email content');
+    closeModal();
+  });
+}
+
+function sendViaDefaultMailClient(){
+  const f = document.getElementById('emailDispatchForm');
+  if(!f) return;
+  const toEmail = (f.querySelector('[name="toEmail"]').value||'').trim();
+  const sub = (f.querySelector('[name="subject"]').value||'').trim();
+  const content = (f.querySelector('[name="body"]').value||'').trim();
+  if(!toEmail){ showToast('Please enter recipient email', true); return; }
+  const mailtoUrl = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(content)}`;
+  window.open(mailtoUrl, '_blank');
+  showToast('Mail application opened');
+  closeModal();
+}
+
+async function sendAutoDataEmail(isManual = false){
+  const targetEmail = (DB.settings && DB.settings.autoEmail) ? DB.settings.autoEmail.trim() : 'Waqar61@live.com';
+  if(!targetEmail){
+    if(isManual) showToast('Please set an auto-send email address in Settings', true);
+    return;
+  }
+  if(isAutoSendingEmail) return;
+  isAutoSendingEmail = true;
+
+  if(isManual) showToast(`Sending clinic report & data to ${targetEmail}...`);
+
+  const today = todayISO();
+  const todaysAppts = DB.appointments.filter(a=>a.date===today);
+  const totalRevenue = DB.bills.reduce((s,b)=> s + Number(b.paid||0), 0);
+  const pendingAmt = DB.bills.reduce((s,b)=> s + Math.max(0,(billTotal(b) - Number(b.paid||0))), 0);
+  const timeNow = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  const reportSummary = `SEHAT DENTAL CLINIC - DATA BACKUP & DAILY REPORT
+============================================================
+Clinic Name: ${DB.settings.clinicName || 'Sehat Dental'}
+Doctor: Dr. ${DB.settings.doctorName || 'Dr. Waqar'}
+Recipient: ${targetEmail}
+Generated: ${fmtDate(today)} at ${timeNow}
+
+FINANCIAL OVERVIEW:
+------------------------------------------------------------
+- Total Revenue Collected: Rs. ${totalRevenue.toLocaleString('en-PK')}
+- Total Pending Balance:   Rs. ${pendingAmt.toLocaleString('en-PK')}
+- Total Bills Issued:      ${DB.bills.length}
+
+CLINIC ACTIVITY:
+------------------------------------------------------------
+- Total Registered Patients: ${DB.patients.length}
+- Today's Appointments:      ${todaysAppts.length}
+- Total Prescriptions:       ${DB.prescriptions.length}
+- Active Treatment Plans:    ${DB.treatmentPlans.length}
+- 3D Setups / Aligners:      ${Object.keys(DB.alignerSetups||{}).length}
+
+TODAY'S APPOINTMENTS (${fmtDate(today)}):
+------------------------------------------------------------
+${todaysAppts.length ? todaysAppts.map(a=> `• ${a.patientName} | Time: ${a.time||'—'} | Reason: ${a.reason||'Checkup'} | Status: ${a.status}`).join('\n') : 'No appointments scheduled for today.'}
+
+RECENT BILLS:
+------------------------------------------------------------
+${DB.bills.slice(-5).reverse().map(b=> `• ${b.billNo} | ${b.patientName} | Total: Rs. ${billTotal(b)} | Paid: Rs. ${b.paid||0}`).join('\n') || 'No recent bills.'}
+
+============================================================
+Auto-generated and sent from Sehat Dental Clinic Manager.
+============================================================`;
+
+  const backupData = {
+    exportedAt: new Date().toISOString(),
+    clinicName: DB.settings.clinicName || 'Sehat Dental',
+    doctorName: DB.settings.doctorName || 'Dr. Waqar',
+    patients: DB.patients,
+    appointments: DB.appointments,
+    toothCharts: DB.toothCharts,
+    treatmentPlans: DB.treatmentPlans,
+    prescriptions: DB.prescriptions,
+    bills: DB.bills,
+    alignerSetups: DB.alignerSetups,
+    opgScans: DB.opgScans,
+    seq: DB.seq,
+    billSeq: DB.billSeq
+  };
+
+  const jsonStr = JSON.stringify(backupData, null, 2);
+
+  // 1. Direct Background Email via FormSubmit
+  try {
+    const resp = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        _subject: `🏥 Clinic Data Backup (${fmtDate(today)}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+        _template: "table",
+        Clinic: DB.settings.clinicName || 'Sehat Dental',
+        Doctor: `Dr. ${DB.settings.doctorName || 'Dr. Waqar'}`,
+        Date: `${fmtDate(today)} ${timeNow}`,
+        Total_Patients: DB.patients.length,
+        Today_Appointments: todaysAppts.length,
+        Total_Revenue_PKR: totalRevenue.toLocaleString('en-PK'),
+        Pending_Balance_PKR: pendingAmt.toLocaleString('en-PK'),
+        Report_Summary: reportSummary,
+        Database_Backup_JSON: jsonStr.length > 55000 ? (jsonStr.slice(0, 55000) + '\n... [Backup truncated for email size limits; use in-app Excel / JSON export for complete raw data]') : jsonStr
+      })
+    });
+
+    const resData = await resp.json();
+    if(resp.ok && (resData.success === 'true' || resData.success === true)){
+      DB.lastEmailSentTime = new Date().toISOString();
+      DB.lastDailyEmailDate = today;
+      saveDB();
+      showToast(`✅ Data successfully sent to ${targetEmail}!`);
+      if(currentSection === 'dashboard') renderDashboard();
+      isAutoSendingEmail = false;
+      return;
+    } else if(resData && resData.message && resData.message.toLowerCase().includes('activation')){
+      showToast(`⚠️ FormSubmit activation sent to ${targetEmail}. Please click activate in your email once!`, false);
+      DB.lastEmailSentTime = new Date().toISOString();
+      saveDB();
+      if(currentSection === 'dashboard') renderDashboard();
+      isAutoSendingEmail = false;
+      return;
+    }
+  } catch(err){
+    console.warn('FormSubmit background dispatch error:', err);
+  }
+
+  // 2. EmailJS if configured
+  if(DB.settings && DB.settings.emailjsServiceId && DB.settings.emailjsPublicKey && typeof emailjs !== 'undefined'){
+    try {
+      emailjs.init(DB.settings.emailjsPublicKey);
+      await emailjs.send(DB.settings.emailjsServiceId, DB.settings.emailjsTemplateId, {
+        to_email: targetEmail,
+        subject: `🏥 Clinic Data Backup (${fmtDate(today)}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+        message: reportSummary + '\n\n' + jsonStr.slice(0, 4000),
+        clinic_name: DB.settings.clinicName || 'Sehat Dental',
+        doctor_name: DB.settings.doctorName || 'Dr. Waqar'
+      });
+      DB.lastEmailSentTime = new Date().toISOString();
+      DB.lastDailyEmailDate = today;
+      saveDB();
+      showToast(`✅ Data sent via EmailJS to ${targetEmail}!`);
+      if(currentSection === 'dashboard') renderDashboard();
+      isAutoSendingEmail = false;
+      return;
+    } catch(err2){
+      console.warn('EmailJS auto-send error:', err2);
+    }
+  }
+
+  if(isManual){
+    openEmailModal({
+      to: targetEmail,
+      subject: `🏥 Clinic Data Backup (${fmtDate(today)}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+      body: reportSummary + '\n\n' + jsonStr,
+      title: `✉️ Send Clinic Data to ${targetEmail}`
+    });
+  }
+  isAutoSendingEmail = false;
+}
+
+function openRestoreBackupModal(){
+  const targetEmail = (DB.settings && DB.settings.autoEmail) || 'Waqar61@live.com';
+  openModal('📥 Restore Clinic Data from Backup', `
+    <div style="font-size:13.5px;color:var(--muted);margin-bottom:14px;line-height:1.4;">
+      Restore your complete database from a backup JSON file or by pasting the backup data received at <b>${esc(targetEmail)}</b>.
+    </div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Upload Backup File (.json)</label>
+        <input type="file" id="backupFileInput" accept=".json,application/json" onchange="handleBackupFileUpload(event)">
+      </div>
+      <div class="field full">
+        <label>Or Paste Backup JSON Data</label>
+        <textarea id="backupPasteArea" rows="7" placeholder="Paste full database JSON here..." style="font-family:monospace;font-size:12px;line-height:1.4;"></textarea>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top:16px;">
+      <button class="btn btn-primary" type="button" onclick="executeRestoreBackup()">${ICONS.check} Restore Database Now</button>
+      <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+    </div>
+  `, true);
+}
+
+function handleBackupFileUpload(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    document.getElementById('backupPasteArea').value = evt.target.result;
+  };
+  reader.readAsText(file);
+}
+
+function executeRestoreBackup(){
+  const val = (document.getElementById('backupPasteArea').value || '').trim();
+  if(!val){ showToast('Please select a file or paste JSON data', true); return; }
+  try {
+    const data = JSON.parse(val);
+    if(!data.patients && !data.appointments && !data.bills){
+      showToast('Invalid backup format: missing core records', true);
+      return;
+    }
+    if(confirm('Restoring this backup will replace current records. Are you sure you want to proceed?')){
+      DB.patients = data.patients || DB.patients;
+      DB.appointments = data.appointments || DB.appointments;
+      DB.toothCharts = data.toothCharts || DB.toothCharts;
+      DB.treatmentPlans = data.treatmentPlans || DB.treatmentPlans;
+      DB.prescriptions = data.prescriptions || DB.prescriptions;
+      DB.bills = data.bills || DB.bills;
+      DB.alignerSetups = data.alignerSetups || DB.alignerSetups;
+      DB.opgScans = data.opgScans || DB.opgScans;
+      if(data.seq) DB.seq = Math.max(DB.seq, data.seq);
+      if(data.billSeq) DB.billSeq = Math.max(DB.billSeq, data.billSeq);
+      if(data.settings) DB.settings = Object.assign(DB.settings, data.settings);
+      saveDB();
+      closeModal();
+      showToast('Database successfully restored from backup!');
+      if(currentSection === 'dashboard') renderDashboard();
+      else goTo(currentSection);
+    }
+  } catch(err){
+    console.error(err);
+    showToast('Failed to parse JSON backup: ' + err.message, true);
+  }
+}
+
+function copyEmailText(btn){
+  const textarea = document.querySelector('#emailDispatchForm textarea[name="body"]');
+  if(!textarea) return;
+  navigator.clipboard.writeText(textarea.value).then(()=>{
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    setTimeout(()=> btn.innerHTML = orig, 2000);
+  }).catch(()=>{
+    showToast('Could not copy text', true);
+  });
+}
+
+function emailBill(id){
+  const b = DB.bills.find(x=>x.id===id); if(!b) return;
+  const pat = DB.patients.find(p=>p.id===b.patientId);
+  const sub = billSub(b);
+  const disc = billDiscAmount(b);
+  const total = billTotal(b);
+  const paid = Number(b.paid)||0;
+  const bal = Math.max(0, total-paid);
+
+  let itemsText = (b.items||[]).map(i=> ` - ${i.desc}: Qty ${i.qty} x Rs. ${i.price} = Rs. ${(i.qty||0)*(i.price||0)}`).join('\n');
+
+  const body = `Dear ${b.patientName},
+
+Thank you for visiting ${DB.settings.clinicName||'Sehat Dental Clinic'}.
+
+Here is the summary of your bill receipt:
+------------------------------------------
+Invoice No: ${b.billNo}
+Date: ${fmtDate(b.date)} ${b.time||''}
+Doctor: Dr. ${b.doctor || DB.settings.doctorName || '—'}
+Clinic Branch: ${b.clinic||'Main Branch'}
+
+ITEMS & SERVICES:
+${itemsText}
+
+------------------------------------------
+Subtotal: Rs. ${sub}
+Discount: Rs. ${disc}
+Total Payable: Rs. ${total}
+Paid Amount: Rs. ${paid}
+Remaining Balance: Rs. ${bal}
+Payment Method: ${b.paymentMethod||'Cash'}
+Status: ${bal===0?'PAID':'OUTSTANDING DUES'} ${b.dueDate?'(Due: '+fmtDate(b.dueDate)+')':''}
+------------------------------------------
+
+If you have any questions, please contact us.
+
+Best regards,
+${DB.settings.clinicName||'Sehat Dental Clinic'}
+Dr. ${DB.settings.doctorName||'Doctor'}`;
+
+  openEmailModal({
+    to: (pat && pat.email) || '',
+    subject: `Bill Receipt (${b.billNo}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+    body: body,
+    title: `✉️ Email Bill Receipt to ${b.patientName}`
+  });
+}
+
+function emailPrescription(id){
+  const rx = DB.prescriptions.find(r=>r.id===id); if(!rx) return;
+  const pat = DB.patients.find(p=>p.id===rx.patientId);
+
+  let medText = (rx.medicines||[]).map((m, idx)=> `${idx+1}. ${m.name}\n   Dosage: ${m.dosage} | Duration: ${m.duration}\n   Instructions: ${m.instructions||'—'}`).join('\n\n');
+
+  const body = `Dear ${rx.patientName},
+
+Here is your prescription from ${DB.settings.clinicName||'Sehat Dental Clinic'}:
+------------------------------------------
+Date: ${fmtDate(rx.date)}
+Prescribed By: Dr. ${rx.doctor || DB.settings.doctorName || '—'}
+
+MEDICINES PRESCRIBED:
+${medText}
+
+------------------------------------------
+Please take your medications as instructed by the doctor.
+
+Best regards,
+${DB.settings.clinicName||'Sehat Dental Clinic'}
+Dr. ${DB.settings.doctorName||'Doctor'}`;
+
+  openEmailModal({
+    to: (pat && pat.email) || '',
+    subject: `Prescription Details - ${DB.settings.clinicName||'Sehat Dental'}`,
+    body: body,
+    title: `✉️ Email Prescription to ${rx.patientName}`
+  });
+}
+
+function emailPatient(id){
+  const p = DB.patients.find(x=>x.id===id); if(!p) return;
+  const body = `Dear ${p.name},
+
+Greetings from ${DB.settings.clinicName||'Sehat Dental Clinic'}.
+
+Your Patient File Information:
+------------------------------------------
+Patient ID: ${p.id}
+Full Name: ${p.name}
+Phone: ${p.phone}
+Age / Gender: ${p.age||'—'} / ${p.gender||'—'}
+Registered Date: ${fmtDate(p.regDate)}
+------------------------------------------
+
+Best regards,
+${DB.settings.clinicName||'Sehat Dental Clinic'}
+Dr. ${DB.settings.doctorName||'Doctor'}`;
+
+  openEmailModal({
+    to: p.email || '',
+    subject: `Patient Profile (${p.id}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+    body: body,
+    title: `✉️ Email Patient File (${p.name})`
+  });
+}
+
+function openEmailReportModal(){
+  const today = todayISO();
+  const todaysAppts = DB.appointments.filter(a=>a.date===today);
+  const totalRevenue = DB.bills.reduce((s,b)=> s + Number(b.paid||0), 0);
+  const pendingAmt = DB.bills.reduce((s,b)=> s + Math.max(0,(billTotal(b) - Number(b.paid||0))), 0);
+  const targetEmail = (DB.settings && DB.settings.autoEmail) || (DB.settings && DB.settings.doctorEmail) || 'Waqar61@live.com';
+
+  const body = `CLINIC ACTIVITY & FINANCIAL SUMMARY REPORT
+==================================================
+Clinic Name: ${DB.settings.clinicName||'Sehat Dental'}
+Doctor Name: Dr. ${DB.settings.doctorName||'Dr. Waqar'}
+Recipient: ${targetEmail}
+Date: ${fmtDate(today)}
+
+KEY STATS:
+--------------------------------------------------
+- Total Registered Patients: ${DB.patients.length}
+- Today's Appointments: ${todaysAppts.length}
+- Total Bills Issued: ${DB.bills.length}
+- Total Revenue Collected: Rs. ${totalRevenue.toLocaleString('en-PK')}
+- Total Pending Balance: Rs. ${pendingAmt.toLocaleString('en-PK')}
+- Total Prescriptions Issued: ${DB.prescriptions.length}
+- Total Treatment Plans: ${DB.treatmentPlans.length}
+
+TODAY'S APPOINTMENT LIST (${fmtDate(today)}):
+--------------------------------------------------
+${todaysAppts.map(a=> `- ${a.patientName} | Time: ${a.time||'—'} | Reason: ${a.reason||'Checkup'} | Status: ${a.status}`).join('\n') || 'No appointments scheduled for today.'}
+
+RECENT BILLS:
+--------------------------------------------------
+${DB.bills.slice(-5).reverse().map(b=> `- ${b.billNo} | ${b.patientName} | Total: Rs. ${billTotal(b)} | Paid: Rs. ${b.paid||0}`).join('\n') || 'No recent bills.'}
+
+==================================================
+Report generated automatically from Sehat Dental Clinic Manager.`;
+
+  openEmailModal({
+    to: targetEmail,
+    subject: `Daily Clinic Report (${fmtDate(today)}) - ${DB.settings.clinicName||'Sehat Dental'}`,
+    body: body,
+    title: `✉️ Send Clinic Summary & Data Report to ${targetEmail}`
+  });
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return 'Rs. ' + (Number(n)||0).toLocaleString('en-PK', {maximumFractionDigits:0}); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ if(!d) return '—'; const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+/* ============ LOGIN / LOGOUT ============ */
+function handleLogin(e){
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const savedUser = (DB.settings && DB.settings.loginUsername) || 'admin';
+  const savedPass = (DB.settings && DB.settings.loginPassword) || '1234';
+  if(user === savedUser && pass === savedPass){
+    isLoggedIn = true;
+    sessionStorage.setItem('sd_auth', 'yes');
+    const ls = document.getElementById('loginScreen');
+    ls.style.animation = 'none';
+    ls.style.transition = 'opacity .3s';
+    ls.style.opacity = '0';
+    setTimeout(()=>{ ls.style.display='none'; }, 300);
+    updateNavFoot();
+  } else {
+    const err = document.getElementById('loginError');
+    err.style.display = 'block';
+    document.getElementById('loginPass').value = '';
+    setTimeout(()=>{ err.style.display='none'; }, 3500);
+  }
+}
+function doLogout(){
+  if(!confirm('Are you sure you want to logout?')) return;
+  isLoggedIn = false;
+  sessionStorage.removeItem('sd_auth');
+  const ls = document.getElementById('loginScreen');
+  ls.style.display = 'flex';
+  ls.style.opacity = '1';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  showToast('Logged out successfully');
+}
+function togglePwVis(){
+  const inp = document.getElementById('loginPass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function updateNavFoot(){
+  const foot = document.getElementById('navFoot');
+  if(!foot) return;
+  const u = (DB.settings && DB.settings.loginUsername) || 'admin';
+  foot.innerHTML = `<span style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>${esc(u)}</span><span>v1.0 · Data saved locally</span>`;
+  foot.style.cssText = 'display:flex;flex-direction:column;gap:2px;padding:16px 22px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#7FA79E;';
+}
+
+/* ============ NAV RENDER ============ */
+function renderNav(){
+  const nav = document.getElementById('navList');
+  nav.innerHTML = NAV.map(n => `
+    <div class="nav-item ${n.id===currentSection?'active':''}" data-nav="${n.id}">
+      ${ICONS[n.icon]}<span>${n.label}</span>
+    </div>`).join('');
+  nav.querySelectorAll('.nav-item').forEach(el=>{
+    el.addEventListener('click', ()=> goTo(el.dataset.nav));
+  });
+}
+function goTo(section){
+  currentSection = section;
+  const meta = NAV.find(n=>n.id===section);
+  document.getElementById('pageTitle').textContent = meta.label;
+  document.getElementById('pageSub').textContent = meta.sub;
+  document.getElementById('sidebar').classList.remove('open');
+  renderNav();
+  RENDERERS[section]();
+}
+
+/* ============ MODAL HELPERS ============ */
+function openModal(title, bodyHTML, wide){
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modal-backdrop" id="mBackdrop">
+      <div class="modal ${wide?'wide':''}">
+        <div class="modal-head"><h3>${esc(title)}</h3><button class="modal-close" onclick="closeModal()">${ICONS.x}</button></div>
+        <div class="modal-body">${bodyHTML}</div>
+      </div>
+    </div>`;
+  document.getElementById('mBackdrop').addEventListener('click', e=>{ if(e.target.id==='mBackdrop') closeModal(); });
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+function confirmDelete(msg, onYes){
+  openModal('Confirm delete', `
+    <p style="font-size:14px;color:var(--muted);margin-top:0;">${esc(msg)}</p>
+    <div class="form-actions">
+      <button class="btn btn-danger-ghost" style="background:var(--danger);color:#fff;" onclick="(${onYes.toString()})();closeModal();">${ICONS.trash} Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>`);
+}
+
+/* ============ DASHBOARD ============ */
+function renderDashboard(){
+  const c = document.getElementById('content');
+  const autoEmail = (DB.settings && DB.settings.autoEmail) || 'Waqar61@live.com';
+  document.getElementById('topbarRight').innerHTML = `
+    <button class="btn btn-outline-action" onclick="openExcelExportModal()">${ICONS.excel} Export Excel</button>
+    <button class="btn btn-outline-action" onclick="openEmailReportModal()">${ICONS.mail} Send Email Report</button>
+    <button class="btn btn-primary" onclick="sendAutoDataEmail(true)" title="Instantly send complete clinic data backup & report to ${esc(autoEmail)}">${ICONS.mail} Auto Send to ${esc(autoEmail)}</button>
+  `;
+  const today = todayISO();
+  const now = new Date();
+  const todaysAppts = DB.appointments.filter(a=>a.date===today);
+  const totalRevenue = DB.bills.reduce((s,b)=> s + Number(b.paid||0), 0);
+  const pendingAmt = DB.bills.reduce((s,b)=> s + Math.max(0,(billTotal(b) - Number(b.paid||0))), 0);
+
+  // Quick overview metrics
+  const upcoming7 = DB.appointments.filter(a=> a.date>today && a.date<=new Date(Date.now()+7*864e5).toISOString().slice(0,10) && a.status!=='Cancelled').length;
+  const pendingBillsCount = DB.bills.filter(b=> billTotal(b) - Number(b.paid||0) > 0).length;
+  const fullyPaidCount = DB.bills.filter(b=> billTotal(b) - Number(b.paid||0) <= 0 && billTotal(b)>0).length;
+  const cancelledAppts = DB.appointments.filter(a=>a.status==='Cancelled').length;
+  let plannedCount=0, inProgressCount=0, completedCount=0, activePlanPatients=new Set(), allPlanPatients=new Set();
+  DB.treatmentPlans.forEach(p=>{
+    allPlanPatients.add(p.patientId);
+    let hasOpen=false;
+    (p.treatments||[]).forEach(t=>{
+      if(t.status==='Planned') plannedCount++;
+      else if(t.status==='In-Progress'){ inProgressCount++; hasOpen=true; }
+      else if(t.status==='Completed') completedCount++;
+      if(t.status!=='Completed') hasOpen=true;
+    });
+    if(hasOpen) activePlanPatients.add(p.patientId);
+  });
+  const monthPrefix = today.slice(0,7);
+  const newThisMonth = DB.patients.filter(p=> (p.regDate||'').slice(0,7)===monthPrefix).length;
+  const rxIssued = DB.prescriptions.length;
+  const actionsNeeded = pendingBillsCount + todaysAppts.filter(a=>a.status!=='Completed' && a.status!=='Cancelled').length;
+
+  const QO = [
+    {label:"Today's Appointments", value:todaysAppts.length, icon:'appt', highlight:true, go:'appointments'},
+    {label:'Pending Bills', value:pendingBillsCount, icon:'alertCircle', go:'billing'},
+    {label:'Treatment Plans (Planned)', value:plannedCount, icon:'hourglass', go:'treatment'},
+    {label:'Upcoming (7 days)', value:upcoming7, icon:'clock', go:'appointments'},
+    {label:'Total Patients', value:DB.patients.length, icon:'list', go:'patients'},
+    {label:'Treatments In Progress', value:inProgressCount, icon:'trending', go:'treatment'},
+    {label:'Completed Treatments', value:completedCount, icon:'checkCircle', go:'treatment'},
+    {label:'Active Treatment Plans', value:activePlanPatients.size, icon:'repeat', go:'treatment'},
+    {label:'Cancelled Appointments', value:cancelledAppts, icon:'xCircle', go:'appointments'},
+    {label:'Fully Paid Bills', value:fullyPaidCount, icon:'archive', go:'billing'},
+    {label:'ClearPath 3D Setups', value:Object.keys(DB.alignerSetups||{}).length || DB.patients.length, icon:'cube', go:'aligners'},
+    {label:'Prescriptions Issued', value:rxIssued, icon:'rx', go:'prescription'},
+    {label:'New Patients This Month', value:newThisMonth, icon:'reg', go:'patients'},
+  ];
+
+  c.innerHTML = `
+    <div class="greet-card">
+      <div>
+        <div class="greet-title">Hi, Dr. ${esc(DB.settings.doctorName)}
+          <button class="greet-edit" title="Edit clinic settings" onclick="openSettingsForm()">${ICONS.edit}</button>
+        </div>
+        <div class="greet-sub">${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Local time: ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+      </div>
+      <div class="greet-actions">
+        <button class="btn btn-outline-action" onclick="goTo('billing')">Action(s) Needed ${actionsNeeded>0?`<span class="count-badge">${actionsNeeded}</span>`:''}</button>
+        <button class="btn btn-accent" onclick="goTo('register')">${ICONS.plus} New Patient</button>
+      </div>
+    </div>
+
+    <!-- Auto Email Sync Status Banner -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:${DB.settings.autoEmailEnabled!==false?'var(--success-light)':'var(--bg)'};color:${DB.settings.autoEmailEnabled!==false?'var(--success)':'var(--muted)'};">
+          ${ICONS.mail}
+        </span>
+        <div>
+          <span style="font-weight:700;font-size:13px;color:var(--ink);">Auto Data Email Backup:</span>
+          <span style="font-size:13px;color:${DB.settings.autoEmailEnabled!==false?'var(--success)':'var(--muted)'};font-weight:700;">
+            ${DB.settings.autoEmailEnabled!==false ? '● Active' : '○ Disabled'}
+          </span>
+          <span style="font-size:13px;color:var(--muted);margin-left:4px;">to <b>${esc(autoEmail)}</b></span>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px;">• Last sent: ${DB.lastEmailSentTime ? fmtDate(DB.lastEmailSentTime.slice(0,10)) + ' ' + new Date(DB.lastEmailSentTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'Ready / Click Auto Send'}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="sendAutoDataEmail(true)">⚡ Send Now</button>
+        <button class="btn btn-outline-action btn-sm" onclick="openRestoreBackupModal()">📥 Restore Backup</button>
+        <button class="btn btn-ghost btn-sm" onclick="openSettingsForm()">⚙️ Settings</button>
+      </div>
+    </div>
+
+    <div class="qo-head"><h3 class="section-title" style="margin:0;">Quick Overview</h3></div>
+    <div class="qo-grid">
+      ${QO.map(q=>`
+        <div class="qo-card ${q.highlight?'highlight':''}" onclick="goTo('${q.go}')">
+          <div class="qo-icon">${ICONS[q.icon]}</div>
+          <div><div class="qo-value">${q.value}</div><div class="qo-label">${esc(q.label)}</div></div>
+        </div>`).join('')}
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="bar p3"></div><div class="label">Total Revenue Collected</div><div class="value" style="font-size:22px;">${money(totalRevenue)}</div><div class="delta">across ${DB.bills.length} bills</div></div>
+      <div class="stat-card"><div class="bar p4"></div><div class="label">Pending Balance</div><div class="value" style="font-size:22px;">${money(pendingAmt)}</div><div class="delta">to be collected</div></div>
+      <div class="stat-card"><div class="bar p1"></div><div class="label">Prescriptions Issued</div><div class="value">${rxIssued}</div><div class="delta">total to date</div></div>
+      <div class="stat-card"><div class="bar p2"></div><div class="label">Treatment Plans</div><div class="value">${DB.treatmentPlans.length}</div><div class="delta">for ${allPlanPatients.size} patients</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="card pad">
+        <h3 class="section-title">Today's Appointments</h3>
+        ${ todaysAppts.length ? todaysAppts.map(a=>`
+          <div class="list-row"><div><div class="who">${esc(a.patientName)}</div><div class="meta">${esc(a.doctor||'—')} · ${esc(a.reason||'Checkup')}</div></div>
+          <div>${apptStatusBadge(a.status)} <span style="margin-left:8px;color:var(--muted);">${esc(a.time||'')}</span></div></div>
+        `).join('') : `<div class="empty-note">No appointments scheduled for today.</div>` }
+      </div>
+      <div class="card pad">
+        <h3 class="section-title">Recent Bills</h3>
+        ${ DB.bills.slice(-5).reverse().map(b=>`
+          <div class="list-row"><div><div class="who">${esc(b.billNo)}</div><div class="meta">${esc(b.patientName)} · ${fmtDate(b.date)}</div></div>
+          <div>${billStatusBadge(b)}</div></div>
+        `).join('') || `<div class="empty-note">No bills created yet.</div>` }
+      </div>
+    </div>`;
+}
+
+/* ============ PATIENT REGISTRATION ============ */
+const HISTORY_OPTIONS = ['No Known History','Diabetes','Hypertension','Asthma','Heart Disease','Kidney Disease','Liver Disease','TB','Hepatitis','Cancer','Other'];
+const ALLERGY_OPTIONS = ['No Known Allergy','Medicine','Food','Latex','Dust/Pollen','Other'];
+
+function checkGroupHTML(groupName, options, selected){
+  selected = selected || [];
+  return `<div class="check-group" data-group="${groupName}">${options.map(o=>{
+    const checked = selected.includes(o);
+    return `<label class="check-chip ${checked?'checked':''}"><input type="checkbox" name="${groupName}" value="${esc(o)}" ${checked?'checked':''}> ${esc(o)}</label>`;
+  }).join('')}</div>`;
+}
+function attachCheckGroupBehavior(container, noneLabel){
+  const boxes = [...container.querySelectorAll('input[type=checkbox]')];
+  boxes.forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      cb.closest('.check-chip').classList.toggle('checked', cb.checked);
+      if(cb.checked && cb.value===noneLabel){
+        boxes.forEach(other=>{ if(other!==cb && other.checked){ other.checked=false; other.closest('.check-chip').classList.remove('checked'); }});
+      } else if(cb.checked && cb.value!==noneLabel){
+        const noneBox = boxes.find(b=>b.value===noneLabel);
+        if(noneBox && noneBox.checked){ noneBox.checked=false; noneBox.closest('.check-chip').classList.remove('checked'); }
+      }
+    });
+  });
+}
+function medicalFieldsetHTML(mh, al){
+  mh = mh || {conditions:[], otherText:''}; al = al || {types:[], details:''};
+  return `
+    <div class="field full">
+      <span class="fieldset-label">Medical History / Allergies</span>
+      <div class="card pad" style="background:#fbfdfc;">
+        <span class="fieldset-label" style="margin-bottom:8px;">Medical History</span>
+        ${checkGroupHTML('mh_condition', HISTORY_OPTIONS, mh.conditions)}
+        <div style="margin-top:10px;"><input name="mh_other_text" placeholder="If Other, please specify" value="${esc(mh.otherText||'')}"></div>
+        <div style="height:16px;"></div>
+        <span class="fieldset-label" style="margin-bottom:8px;">Allergies</span>
+        ${checkGroupHTML('al_type', ALLERGY_OPTIONS, al.types)}
+        <div style="margin-top:10px;"><input name="al_details" placeholder="Allergy Details" value="${esc(al.details||'')}"></div>
+      </div>
+    </div>`;
+}
+function readMedicalFieldset(formEl){
+  const conditions = [...formEl.querySelectorAll('input[name="mh_condition"]:checked')].map(i=>i.value);
+  const otherText = formEl.querySelector('input[name="mh_other_text"]').value.trim();
+  const types = [...formEl.querySelectorAll('input[name="al_type"]:checked')].map(i=>i.value);
+  const details = formEl.querySelector('input[name="al_details"]').value.trim();
+  return { medicalHistory:{conditions, otherText}, allergyInfo:{types, details} };
+}
+function summarizeMedical(p){
+  const mh = p.medicalHistory, al = p.allergyInfo;
+  if(!mh && !al) return esc(p.history || '—');
+  const mhText = mh && mh.conditions && mh.conditions.length ? mh.conditions.join(', ') + (mh.otherText?' ('+esc(mh.otherText)+')':'') : '—';
+  const alText = al && al.types && al.types.length ? al.types.join(', ') + (al.details?' — '+esc(al.details):'') : '—';
+  return `<b style="font-weight:600;">History:</b> ${esc(mhText)}<br><b style="font-weight:600;">Allergies:</b> ${esc(alText)}`;
+}
+
+function renderRegister(){
+  document.getElementById('topbarRight').innerHTML = '';
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="card pad" style="max-width:760px;">
+      <h3 class="section-title">New Patient Details</h3>
+      <form id="regForm">
+        <div class="form-grid">
+          <div class="field"><label>Full Name *</label><input name="name" required placeholder="e.g. Ayesha Khan"></div>
+          <div class="field"><label>Phone Number *</label><input name="phone" required placeholder="03xx-xxxxxxx"></div>
+          <div class="field"><label>Age</label><input name="age" type="number" min="0" placeholder="e.g. 32"></div>
+          <div class="field"><label>Gender</label>
+            <select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select>
+          </div>
+          <div class="field full"><label>Address</label><input name="address" placeholder="Street, city"></div>
+          ${medicalFieldsetHTML()}
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">${ICONS.plus} Register Patient</button>
+          <button type="reset" class="btn btn-ghost">Clear</button>
+        </div>
+      </form>
+    </div>`;
+  const form = document.getElementById('regForm');
+  form.querySelectorAll('.check-group').forEach(g=> attachCheckGroupBehavior(g, g.dataset.group==='mh_condition' ? 'No Known History' : 'No Known Allergy'));
+  form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const med = readMedicalFieldset(form);
+    const p = Object.assign({
+      id: uid('PT'), name: f.get('name').trim(), phone: f.get('phone').trim(),
+      age: f.get('age'), gender: f.get('gender'), address: f.get('address'),
+      regDate: todayISO()
+    }, med);
+    if(!p.name || !p.phone){ showToast('Name and phone are required', true); return; }
+    DB.patients.push(p); saveDB();
+    showToast('Patient registered: ' + p.name);
+    e.target.reset();
+    goTo('patients');
+  });
+}
+
+/* ============ PATIENT LIST ============ */
+function renderPatients(){
+  document.getElementById('topbarRight').innerHTML = `<button class="btn btn-outline-action" onclick="exportPatientsToExcel()">${ICONS.excel} Export Excel</button><button class="btn btn-accent" onclick="goTo('register')">${ICONS.plus} New Patient</button>`;
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="toolbar">
+      <div class="search-box">${ICONS.search}<input id="patSearch" placeholder="Search by name, phone or ID..."></div>
+    </div>
+    <div class="card"><div id="patTableWrap"></div></div>`;
+  const draw = ()=>{
+    const q = (document.getElementById('patSearch').value||'').toLowerCase();
+    const rows = DB.patients.filter(p=> !q || p.name.toLowerCase().includes(q) || (p.phone||'').includes(q) || p.id.toLowerCase().includes(q));
+    document.getElementById('patTableWrap').innerHTML = rows.length ? `
+      <table><thead><tr><th>Patient ID</th><th>Name</th><th>Age / Gender</th><th>Phone</th><th>Registered</th><th>Actions</th></tr></thead>
+      <tbody>${rows.map(p=>`
+        <tr><td class="sub-cell">${esc(p.id)}</td>
+        <td class="name-cell">${esc(p.name)}</td>
+        <td>${esc(p.age||'—')}${p.gender?' · '+esc(p.gender):''}</td>
+        <td>${esc(p.phone)}</td>
+        <td class="sub-cell">${fmtDate(p.regDate)}</td>
+        <td class="actions-cell">
+          <button class="icon-btn" title="View" onclick="viewPatient('${p.id}')">${ICONS.eye}</button>
+          <button class="icon-btn" title="Print Patient Card" onclick="printPatient('${p.id}')">${ICONS.print}</button>
+          <button class="icon-btn" title="Email Patient Info" onclick="emailPatient('${p.id}')">${ICONS.mail}</button>
+          <button class="icon-btn" title="Edit" onclick="editPatient('${p.id}')">${ICONS.edit}</button>
+          <button class="icon-btn" title="Delete" onclick="deletePatient('${p.id}')">${ICONS.trash}</button>
+        </td></tr>`).join('')}</tbody></table>` : `<div class="empty-note pad">No patients found.</div>`;
+  };
+  document.getElementById('patSearch').addEventListener('input', draw);
+  draw();
+}
+function viewPatient(id){
+  const p = DB.patients.find(x=>x.id===id); if(!p) return;
+  openModal('Patient — ' + p.name, `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13.5px;">
+      <div><b>Patient ID</b><br><span style="color:var(--muted)">${esc(p.id)}</span></div>
+      <div><b>Phone</b><br><span style="color:var(--muted)">${esc(p.phone)}</span></div>
+      <div><b>Age</b><br><span style="color:var(--muted)">${esc(p.age||'—')}</span></div>
+      <div><b>Gender</b><br><span style="color:var(--muted)">${esc(p.gender||'—')}</span></div>
+      <div style="grid-column:1/-1;"><b>Address</b><br><span style="color:var(--muted)">${esc(p.address||'—')}</span></div>
+      <div style="grid-column:1/-1;"><b>Medical History / Allergies</b><br><span style="color:var(--muted)">${summarizeMedical(p)}</span></div>
+      <div><b>Registered</b><br><span style="color:var(--muted)">${fmtDate(p.regDate)}</span></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="closeModal();printPatient('${p.id}')">${ICONS.print} Print</button></div>`);
+}
+function printPatient(id){
+  const p = DB.patients.find(x=>x.id===id); if(!p) return;
+  const clinic = DB.settings.clinicName || 'Sehat Dental';
+  const doctor = DB.settings.doctorName || 'Dr. Waqar';
+  const mhText = (p.medicalHistory && p.medicalHistory.conditions && p.medicalHistory.conditions.length)
+    ? p.medicalHistory.conditions.join(', ') + (p.medicalHistory.otherText ? ' (' + p.medicalHistory.otherText + ')' : '')
+    : 'No Known History';
+  const alText = (p.allergyInfo && p.allergyInfo.types && p.allergyInfo.types.length)
+    ? p.allergyInfo.types.join(', ') + (p.allergyInfo.details ? ' — ' + p.allergyInfo.details : '')
+    : 'No Known Allergy';
+  const toothChart = DB.toothCharts[p.id] || {};
+  const toothRows = Object.entries(toothChart).filter(([,v])=>v!=='healthy').map(([t,v])=>{
+    const st = TOOTH_STATUSES[v];
+    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;">Tooth #${t}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-weight:600;color:#333;">${st?st.label:v}</td></tr>`;
+  }).join('');
+  const bills = DB.bills.filter(b=>b.patientId===p.id);
+  const totalPaid = bills.reduce((s,b)=>s+Number(b.paid||0),0);
+  const totalDue = bills.reduce((s,b)=>s+Math.max(0,billTotal(b)-Number(b.paid||0)),0);
+  const appts = DB.appointments.filter(a=>a.patientId===p.id);
+  const printedAt = new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  document.getElementById('printArea').innerHTML = `
+    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:740px;margin:0 auto;padding:30px;">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0E5C52;padding-bottom:16px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#0A3E38;">${esc(clinic)}</div>
+          <div style="font-size:12px;color:#5C756F;margin-top:3px;">Patient Registration Card · ${esc(doctor)}</div>
+        </div>
+        <div style="text-align:right;font-size:11.5px;color:#5C756F;">
+          <div><b>Printed:</b> ${printedAt}</div>
+          <div><b>Patient ID:</b> ${esc(p.id)}</div>
+          <div><b>Registered:</b> ${fmtDate(p.regDate)}</div>
+        </div>
+      </div>
+
+      <!-- Patient Info -->
+      <div style="background:#F4F8F7;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
+        <div style="font-size:16px;font-weight:800;color:#0A3E38;margin-bottom:12px;">👤 Patient Information</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr>
+            <td style="padding:5px 12px 5px 0;color:#5C756F;font-weight:600;width:140px;">Full Name</td>
+            <td style="padding:5px 0;font-weight:700;font-size:15px;color:#122624;">${esc(p.name)}</td>
+            <td style="padding:5px 12px 5px 0;color:#5C756F;font-weight:600;width:100px;">Phone</td>
+            <td style="padding:5px 0;">${esc(p.phone)}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 12px 5px 0;color:#5C756F;font-weight:600;">Age</td>
+            <td style="padding:5px 0;">${esc(p.age||'—')}</td>
+            <td style="padding:5px 12px 5px 0;color:#5C756F;font-weight:600;">Gender</td>
+            <td style="padding:5px 0;">${esc(p.gender||'—')}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 12px 5px 0;color:#5C756F;font-weight:600;vertical-align:top;">Address</td>
+            <td style="padding:5px 0;" colspan="3">${esc(p.address||'—')}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Medical History -->
+      <div style="background:#fff;border:1px solid #DCE7E2;border-radius:10px;padding:16px 20px;margin-bottom:18px;">
+        <div style="font-size:14px;font-weight:800;color:#0A3E38;margin-bottom:10px;">🏥 Medical History &amp; Allergies</div>
+        <table style="width:100%;font-size:13px;">
+          <tr>
+            <td style="padding:4px 0;color:#5C756F;font-weight:600;width:160px;">Medical History</td>
+            <td style="padding:4px 0;">${esc(mhText)}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#5C756F;font-weight:600;">Allergies</td>
+            <td style="padding:4px 0;">${esc(alText)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Dental Chart Summary -->
+      ${toothRows ? `
+      <div style="background:#fff;border:1px solid #DCE7E2;border-radius:10px;padding:16px 20px;margin-bottom:18px;">
+        <div style="font-size:14px;font-weight:800;color:#0A3E38;margin-bottom:10px;">🦷 Dental Chart Summary</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <thead><tr><th style="text-align:left;padding:4px 8px;border-bottom:2px solid #DCE7E2;color:#5C756F;font-size:11px;text-transform:uppercase;">Tooth</th><th style="text-align:left;padding:4px 8px;border-bottom:2px solid #DCE7E2;color:#5C756F;font-size:11px;text-transform:uppercase;">Status</th></tr></thead>
+          <tbody>${toothRows}</tbody>
+        </table>
+      </div>` : ''}
+
+      <!-- Appointments & Billing Summary -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+        <div style="background:#E4F1EE;border-radius:10px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:800;color:#0A3E38;margin-bottom:6px;">📅 Appointments</div>
+          <div style="font-size:22px;font-weight:800;color:#0E5C52;">${appts.length}</div>
+          <div style="font-size:11.5px;color:#5C756F;">Total visits recorded</div>
+        </div>
+        <div style="background:#FBF0D8;border-radius:10px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:800;color:#0A3E38;margin-bottom:6px;">💰 Billing</div>
+          <div style="font-size:13px;color:#122624;margin-top:4px;"><b>Total Paid:</b> Rs. ${totalPaid.toLocaleString('en-PK')}</div>
+          <div style="font-size:13px;color:#C1432E;"><b>Balance Due:</b> Rs. ${totalDue.toLocaleString('en-PK')}</div>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:16px;border-top:1px dashed #DCE7E2;font-size:12px;color:#5C756F;">
+        <div><div style="border-top:1px solid #888;width:180px;padding-top:6px;margin-top:36px;">Patient Signature</div></div>
+        <div style="text-align:right;"><div style="border-top:1px solid #888;width:180px;padding-top:6px;margin-top:36px;">Doctor / Authorized Signature</div></div>
+      </div>
+      <p style="text-align:center;font-size:11px;color:#888;margin-top:20px;">Generated by ${esc(clinic)} Clinic Manager · ${printedAt}</p>
+    </div>`;
+  window.print();
+}
+function editPatient(id){
+  const p = DB.patients.find(x=>x.id===id); if(!p) return;
+  openModal('Edit Patient', `
+    <form id="editPatForm">
+      <div class="form-grid">
+        <div class="field"><label>Full Name *</label><input name="name" required value="${esc(p.name)}"></div>
+        <div class="field"><label>Phone *</label><input name="phone" required value="${esc(p.phone)}"></div>
+        <div class="field"><label>Age</label><input name="age" type="number" value="${esc(p.age||'')}"></div>
+        <div class="field"><label>Gender</label><select name="gender">
+          <option ${!p.gender?'selected':''} value="">Select</option>
+          <option ${p.gender==='Male'?'selected':''}>Male</option>
+          <option ${p.gender==='Female'?'selected':''}>Female</option>
+          <option ${p.gender==='Other'?'selected':''}>Other</option>
+        </select></div>
+        <div class="field full"><label>Address</label><input name="address" value="${esc(p.address||'')}"></div>
+        ${medicalFieldsetHTML(p.medicalHistory, p.allergyInfo)}
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Save Changes</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`, true);
+  const editForm = document.getElementById('editPatForm');
+  editForm.querySelectorAll('.check-group').forEach(g=> attachCheckGroupBehavior(g, g.dataset.group==='mh_condition' ? 'No Known History' : 'No Known Allergy'));
+  editForm.addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const med = readMedicalFieldset(editForm);
+    Object.assign(p, {name:f.get('name').trim(), phone:f.get('phone').trim(), age:f.get('age'), gender:f.get('gender'), address:f.get('address')}, med);
+    delete p.history;
+    saveDB(); closeModal(); showToast('Patient updated'); renderPatients();
+  });
+}
+function deletePatient(id){
+  const p = DB.patients.find(x=>x.id===id); if(!p) return;
+  confirmDelete(`Delete patient "${p.name}"? This cannot be undone.`, ()=>{
+    DB.patients = DB.patients.filter(x=>x.id!==id); saveDB(); renderPatients(); showToast('Patient deleted');
+  });
+}
+function patientOptions(selectedId){
+  return `<option value="">Select patient</option>` + DB.patients.map(p=>`<option value="${p.id}" ${p.id===selectedId?'selected':''}>${esc(p.name)} (${p.id})</option>`).join('');
+}
+
+/* ============ APPOINTMENTS ============ */
+function apptStatusBadge(s){
+  const m = {Scheduled:'badge-primary', Completed:'badge-success', Cancelled:'badge-danger'};
+  return `<span class="badge ${m[s]||'badge-muted'}">${esc(s||'Scheduled')}</span>`;
+}
+function renderAppointments(){
+  document.getElementById('topbarRight').innerHTML = `<button class="btn btn-outline-action" onclick="exportAppointmentsToExcel()">${ICONS.excel} Export Excel</button><button class="btn btn-accent" onclick="openApptForm()">${ICONS.plus} New Appointment</button>`;
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="toolbar"><div class="search-box">${ICONS.search}<input id="apptSearch" placeholder="Search by patient or doctor..."></div></div>
+    <div class="card"><div id="apptTableWrap"></div></div>`;
+  const draw = ()=>{
+    const q = (document.getElementById('apptSearch').value||'').toLowerCase();
+    const rows = [...DB.appointments].sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time)).filter(a=> !q || a.patientName.toLowerCase().includes(q) || (a.doctor||'').toLowerCase().includes(q));
+    document.getElementById('apptTableWrap').innerHTML = rows.length ? `
+      <table><thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Doctor</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${rows.map(a=>`
+        <tr><td class="name-cell">${esc(a.patientName)}</td><td>${fmtDate(a.date)}</td><td>${esc(a.time||'—')}</td>
+        <td>${esc(a.doctor||'—')}</td><td class="sub-cell">${esc(a.reason||'—')}</td><td>${apptStatusBadge(a.status)}</td>
+        <td class="actions-cell">
+          <button class="icon-btn" title="Edit" onclick="openApptForm('${a.id}')">${ICONS.edit}</button>
+          <button class="icon-btn" title="Delete" onclick="deleteAppt('${a.id}')">${ICONS.trash}</button>
+        </td></tr>`).join('')}</tbody></table>` : `<div class="empty-note pad">No appointments yet.</div>`;
+  };
+  document.getElementById('apptSearch').addEventListener('input', draw);
+  draw();
+}
+function openApptForm(id){
+  const a = id ? DB.appointments.find(x=>x.id===id) : null;
+  openModal(a?'Edit Appointment':'New Appointment', `
+    <form id="apptForm">
+      <div class="form-grid">
+        <div class="field full"><label>Patient *</label><select name="patientId" required>${patientOptions(a?a.patientId:'')}</select></div>
+        <div class="field"><label>Date *</label><input type="date" name="date" required value="${a?a.date:todayISO()}"></div>
+        <div class="field"><label>Time *</label><input type="time" name="time" required value="${a?a.time:''}"></div>
+        <div class="field"><label>Doctor Name</label><input name="doctor" value="${a?esc(a.doctor||''):''}" placeholder="Dr. ..."></div>
+        <div class="field"><label>Status</label><select name="status">
+          ${['Scheduled','Completed','Cancelled'].map(s=>`<option ${a&&a.status===s?'selected':''}>${s}</option>`).join('')}
+        </select></div>
+        <div class="field full"><label>Reason / Treatment</label><input name="reason" value="${a?esc(a.reason||''):''}" placeholder="e.g. Root canal, cleaning..."></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">${a?'Save Changes':'Schedule Appointment'}</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`);
+  document.getElementById('apptForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const pid = f.get('patientId'); const pat = DB.patients.find(p=>p.id===pid);
+    if(!pat){ showToast('Please select a patient', true); return; }
+    const data = {patientId:pid, patientName:pat.name, date:f.get('date'), time:f.get('time'), doctor:f.get('doctor'), status:f.get('status'), reason:f.get('reason')};
+    if(a){ Object.assign(a, data); } else { DB.appointments.push(Object.assign({id:uid('AP')}, data)); }
+    saveDB(); closeModal(); renderAppointments(); showToast(a?'Appointment updated':'Appointment scheduled');
+  });
+}
+function deleteAppt(id){
+  confirmDelete('Delete this appointment?', ()=>{ DB.appointments = DB.appointments.filter(a=>a.id!==id); saveDB(); renderAppointments(); showToast('Appointment deleted'); });
+}
+
+/* ============ TOOTH CHART ============ */
+const TOOTH_STATUSES = {
+  healthy:{label:'Healthy', color:'#DCE7E2'},
+  cavity:{label:'Cavity', color:'#C1432E'},
+  filled:{label:'Filled', color:'#3B7FC4'},
+  crown:{label:'Crown', color:'#B98A2E'},
+  rootcanal:{label:'Root Canal', color:'#DD6B3B'},
+  extracted:{label:'Extracted', color:'#8A8A8A'},
+  missing:{label:'Missing', color:'transparent'},
+  other:{label:'Other', color:'#7B4FA6'},
+};
+let toothChartPatientId = null;
+function renderToothChart(){
+  document.getElementById('topbarRight').innerHTML = '';
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="tooth-toolbar">
+      <div class="field" style="min-width:280px;"><label>Select Patient</label>
+        <select id="tcPatient">${patientOptions(toothChartPatientId)}</select>
+      </div>
+    </div>
+    <div class="card pad" id="tcCard"><div class="empty-note">Select a patient to view their dental chart.</div></div>`;
+  document.getElementById('tcPatient').addEventListener('change', e=>{ toothChartPatientId = e.target.value; drawToothCard(); });
+  if(toothChartPatientId) drawToothCard();
+}
+function drawToothCard(){
+  const wrap = document.getElementById('tcCard');
+  if(!toothChartPatientId){ wrap.innerHTML = `<div class="empty-note">Select a patient to view their dental chart.</div>`; return; }
+  const pat = DB.patients.find(p=>p.id===toothChartPatientId);
+  if(!DB.toothCharts[toothChartPatientId]) DB.toothCharts[toothChartPatientId] = {};
+  const chart = DB.toothCharts[toothChartPatientId];
+  const toothHTML = (num)=>{
+    const st = chart[num] || 'healthy';
+    const info = TOOTH_STATUSES[st];
+    return `<div class="tooth" data-tooth="${num}" style="background:${st==='missing'?'#fff':info.color+ (st==='healthy'?'':'33')};border-color:${st==='healthy'?'var(--border)':info.color};${st==='missing'?'border-style:dashed;opacity:.5;':''}">
+      <div class="num">${num}</div>
+      <div style="width:10px;height:10px;border-radius:3px;background:${st==='missing'?'transparent':info.color};border:${st==='missing'?'1px dashed #999':'none'};"></div>
+    </div>`;
+  };
+  let upper=''; for(let i=1;i<=16;i++) upper+=toothHTML(i);
+  let lower=''; for(let i=17;i<=32;i++) lower+=toothHTML(i);
+  wrap.innerHTML = `
+    <h3 class="section-title">${esc(pat.name)}'s Dental Chart</h3>
+    <div class="legend">${Object.entries(TOOTH_STATUSES).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.color==='transparent'?'#fff':v.color};${v.color==='transparent'?'border-style:dashed;':''}"></div>${v.label}</div>`).join('')}</div>
+    <div class="arch-label">Upper Arch</div>
+    <div class="arch">${upper}</div>
+    <div class="arch-label">Lower Arch</div>
+    <div class="arch">${lower}</div>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">Click a tooth to update its status.</p>`;
+  wrap.querySelectorAll('.tooth').forEach(el=>{
+    el.addEventListener('click', (e)=> openToothPicker(e.currentTarget, el.dataset.tooth));
+  });
+}
+function openToothPicker(anchorEl, toothNum){
+  document.querySelectorAll('.status-picker').forEach(p=>p.remove());
+  const rect = anchorEl.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'status-picker';
+  picker.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  picker.style.left = Math.min(rect.left + window.scrollX, window.innerWidth-250) + 'px';
+  picker.innerHTML = Object.entries(TOOTH_STATUSES).map(([k,v])=>`
+    <button data-st="${k}"><span class="dot" style="background:${v.color==='transparent'?'#fff':v.color};${v.color==='transparent'?'border:1px dashed #999;':''}"></span>${v.label}</button>`).join('');
+  document.body.appendChild(picker);
+  picker.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      DB.toothCharts[toothChartPatientId][toothNum] = b.dataset.st;
+      saveDB(); picker.remove(); drawToothCard();
+    });
+  });
+  setTimeout(()=>{
+    document.addEventListener('click', function h(ev){ if(!picker.contains(ev.target) && ev.target!==anchorEl){ picker.remove(); document.removeEventListener('click', h); } });
+  },0);
+}
+
+/* ============ TREATMENT PLAN ============ */
+let tpPatientId = null;
+const TP_VIDEO_CACHE = {}; /* session-only object URLs for uploaded treatment videos */
+function renderTreatment(){
+  document.getElementById('topbarRight').innerHTML = '';
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="tooth-toolbar">
+      <div class="field" style="min-width:280px;"><label>Select Patient</label><select id="tpPatient">${patientOptions(tpPatientId)}</select></div>
+      <button class="btn btn-accent" style="align-self:flex-end;" onclick="addTreatmentPlan()">${ICONS.plus} New Treatment Plan</button>
+    </div>
+    <div id="tpList"></div>`;
+  document.getElementById('tpPatient').addEventListener('change', e=>{ tpPatientId = e.target.value; drawTPList(); });
+  drawTPList();
+}
+function drawTPList(){
+  const wrap = document.getElementById('tpList');
+  let plans = DB.treatmentPlans.slice().reverse();
+  if(tpPatientId) plans = plans.filter(p=>p.patientId===tpPatientId);
+  if(!plans.length){ wrap.innerHTML = `<div class="card pad"><div class="empty-note">No treatment plans ${tpPatientId?'for this patient':'yet'}.</div></div>`; return; }
+  wrap.innerHTML = plans.map(plan=>{
+    const hasVideo = !!(plan.videoUrl || TP_VIDEO_CACHE[plan.id]);
+    return `
+    <div class="card pad" style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div><b>${esc(plan.patientName)}</b> <span class="sub-cell">· ${fmtDate(plan.date)}</span> ${hasVideo?`<span class="badge badge-primary" style="margin-left:8px;">${ICONS.video} Video</span>`:''}</div>
+        <div class="actions-cell">
+          ${hasVideo?`<button class="icon-btn" title="Play Treatment Video" onclick="openTPVideo('${plan.id}')">${ICONS.video}</button>`:''}
+          <button class="icon-btn" title="Delete" onclick="deleteTreatmentPlan('${plan.id}')">${ICONS.trash}</button>
+        </div>
+      </div>
+      <table><thead><tr><th>Treatment</th><th>Cost</th><th>Status</th></tr></thead>
+      <tbody>${plan.treatments.map(t=>`<tr><td>${esc(t.name)}</td><td>${money(t.cost)}</td><td>${tpStatusBadge(t.status)}</td></tr>`).join('')}</tbody></table>
+    </div>`;
+  }).join('');
+}
+function tpStatusBadge(s){
+  const m={Planned:'badge-muted','In-Progress':'badge-warn',Completed:'badge-success'};
+  return `<span class="badge ${m[s]||'badge-muted'}">${esc(s)}</span>`;
+}
+function addTreatmentPlan(){
+  openModal('New Treatment Plan', `
+    <form id="tpForm">
+      <div class="form-grid">
+        <div class="field full"><label>Patient *</label><select name="patientId" required>${patientOptions(tpPatientId)}</select></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="item-head"><div>Treatment</div><div>Cost</div><div>Status</div><div></div></div>
+        <div id="tpItems"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addTPItemRow()">${ICONS.plus} Add Treatment</button>
+      </div>
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="field full"><label>Treatment Video / 3D Simulation Link <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+          <input type="url" name="videoUrl" placeholder="Paste a video or 3D setup link (e.g. YouTube, Google Drive, aligner viewer)"></div>
+        <div class="field full"><label>Or Upload a Video File <span style="font-weight:400;color:var(--muted);">(plays during this session)</span></label>
+          <input type="file" name="videoFile" accept="video/*"></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Save Plan</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`, true);
+  addTPItemRow();
+  document.getElementById('tpForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const pid = f.get('patientId'); const pat = DB.patients.find(p=>p.id===pid);
+    if(!pat){ showToast('Please select a patient', true); return; }
+    const names = [...document.querySelectorAll('#tpItems .tp-name')].map(i=>i.value.trim());
+    const costs = [...document.querySelectorAll('#tpItems .tp-cost')].map(i=>Number(i.value)||0);
+    const statuses = [...document.querySelectorAll('#tpItems .tp-status')].map(i=>i.value);
+    const treatments = names.map((n,i)=>({name:n,cost:costs[i],status:statuses[i]})).filter(t=>t.name);
+    if(!treatments.length){ showToast('Add at least one treatment', true); return; }
+    const planId = uid('TP');
+    const videoUrl = (f.get('videoUrl')||'').trim();
+    const videoFile = e.target.querySelector('input[name="videoFile"]').files[0];
+    DB.treatmentPlans.push({id:planId, patientId:pid, patientName:pat.name, date:todayISO(), treatments, videoUrl});
+    if(videoFile){ TP_VIDEO_CACHE[planId] = URL.createObjectURL(videoFile); }
+    saveDB(); closeModal(); tpPatientId = pid; renderTreatment(); showToast('Treatment plan saved' + (videoFile||videoUrl ? ' with video' : ''));
+  });
+}
+function openTPVideo(id){
+  const plan = DB.treatmentPlans.find(p=>p.id===id); if(!plan) return;
+  const objUrl = TP_VIDEO_CACHE[id];
+  let body = '';
+  if(objUrl){
+    body += `<video controls style="width:100%;border-radius:10px;background:#000;max-height:60vh;" src="${objUrl}"></video>`;
+    body += `<p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Uploaded video — available for this session only.</p>`;
+  }
+  if(plan.videoUrl){
+    body += `<p style="margin-top:${objUrl?'14px':'0'};font-size:13.5px;">Video / 3D simulation link:<br><a href="${esc(plan.videoUrl)}" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;">${esc(plan.videoUrl)}</a></p>`;
+  }
+  if(!objUrl && !plan.videoUrl){ body = `<div class="empty-note">No video attached to this plan.</div>`; }
+  openModal('Treatment Video — ' + plan.patientName, body + `<div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`, true);
+}
+function addTPItemRow(){
+  const wrap = document.getElementById('tpItems');
+  const row = document.createElement('div'); row.className='item-row'; row.style.gridTemplateColumns='1fr 100px 130px 32px';
+  row.innerHTML = `<input class="tp-name" placeholder="e.g. Scaling & polishing">
+    <input class="tp-cost" type="number" min="0" placeholder="0">
+    <select class="tp-status"><option>Planned</option><option>In-Progress</option><option>Completed</option></select>
+    <button type="button" class="item-remove" onclick="this.parentElement.remove()">${ICONS.x}</button>`;
+  wrap.appendChild(row);
+}
+function deleteTreatmentPlan(id){
+  confirmDelete('Delete this treatment plan?', ()=>{ DB.treatmentPlans = DB.treatmentPlans.filter(p=>p.id!==id); saveDB(); drawTPList(); showToast('Treatment plan deleted'); });
+}
+
+/* ============ CLEARPATH 3D ALIGNER SETUP & VIEWER ============ */
+let alignerPatientId = null;
+let alignerCurrentAngle = 'front';
+let alignerCurrentStage = 0;
+let alignerIsPlaying = false;
+let alignerPlayTimer = null;
+let alignerActiveTab = '3d';
+const ALIGNER_VIDEO_CACHE = {};
+
+function renderAligners(){
+  document.getElementById('topbarRight').innerHTML = `<button class="btn btn-outline-action" onclick="openAlignerVideoModal()">${ICONS.video} Upload / Link 3D Video</button>
+  <button class="btn btn-accent" onclick="printAlignerReport()">${ICONS.print} Print 3D Report</button>`;
+  const c = document.getElementById('content');
+  if(!alignerPatientId && DB.patients.length) alignerPatientId = DB.patients[0].id;
+  
+  c.innerHTML = `
+    <div class="tooth-toolbar">
+      <div class="field" style="min-width:280px;"><label>Select Patient</label>
+        <select id="alignerPatientSelect">${patientOptions(alignerPatientId)}</select>
+      </div>
+      <div style="display:flex;gap:8px;align-self:flex-end;">
+        <button class="btn ${alignerActiveTab==='3d'?'btn-primary':'btn-ghost'}" id="btnTab3d">${ICONS.cube} 3D Simulation</button>
+        <button class="btn ${alignerActiveTab==='video'?'btn-primary':'btn-ghost'}" id="btnTabVideo">${ICONS.video} ClearPath Video Player</button>
+      </div>
+    </div>
+    <div id="alignerContentWrap"></div>`;
+
+  document.getElementById('alignerPatientSelect').addEventListener('change', e=>{
+    alignerPatientId = e.target.value;
+    drawAlignerView();
+  });
+  document.getElementById('btnTab3d').addEventListener('click', ()=>{
+    alignerActiveTab = '3d';
+    renderAligners();
+  });
+  document.getElementById('btnTabVideo').addEventListener('click', ()=>{
+    alignerActiveTab = 'video';
+    renderAligners();
+  });
+
+  drawAlignerView();
+}
+
+function drawAlignerView(){
+  const wrap = document.getElementById('alignerContentWrap');
+  if(!alignerPatientId){
+    wrap.innerHTML = `<div class="card pad"><div class="empty-note">Select a patient to view their ClearPath 3D Aligner setup.</div></div>`;
+    return;
+  }
+  const pat = DB.patients.find(p=>p.id===alignerPatientId);
+  const setup = (DB.alignerSetups && DB.alignerSetups[alignerPatientId]) || {
+    totalStages: 20,
+    upperArchWidthInitial: 34.2, upperArchWidthFinal: 36.5,
+    lowerArchWidthInitial: 31.8, lowerArchWidthFinal: 33.6,
+    overjetInitial: 3.8, overjetFinal: 1.8,
+    overbiteInitial: 3.4, overbiteFinal: 1.5,
+    traysCount: 20,
+    iprGaps: [
+      { pair: 'Tooth #11 - #21 (Central Incisors)', startGap: 1.6, endGap: 0.0, rotation: '14° -> 0°' },
+      { pair: 'Tooth #12 - #11 (Lateral Incisor)', startGap: 0.8, endGap: 0.0, rotation: '8° -> 0°' },
+      { pair: 'Tooth #21 - #22 (Lateral Incisor)', startGap: 0.9, endGap: 0.0, rotation: '10° -> 0°' },
+      { pair: 'Tooth #13 - #12 (Canine / IPR)', startGap: 0.5, endGap: 0.0, IPR: '0.3 mm IPR' },
+      { pair: 'Tooth #31 - #41 (Lower Anterior)', startGap: 1.4, endGap: 0.0, rotation: '16° -> 0°' }
+    ]
+  };
+
+  if(alignerActiveTab==='video'){
+    const videoFileUrl = ALIGNER_VIDEO_CACHE[alignerPatientId];
+    const videoUrl = setup.videoUrl;
+    wrap.innerHTML = `
+      <div class="aligner-viewer-card" style="max-width:880px;margin:0 auto;">
+        <div class="viewer-topbar">
+          <div>
+            <h3 style="margin:0;font-size:17px;font-family:'Outfit';color:#fff;">ClearPath 3D Treatment Setup Video</h3>
+            <div style="font-size:12.5px;color:#A3C5BF;margin-top:2px;">Patient: <b>${esc(pat.name)}</b> (${esc(pat.id)})</div>
+          </div>
+          <span class="viewer-badge">${ICONS.video} Video Mode</span>
+        </div>
+        ${ videoFileUrl ? `
+          <video controls autoplay loop style="width:100%;max-height:480px;border-radius:10px;background:#000;" src="${videoFileUrl}"></video>
+          <p style="font-size:12px;color:#7FA79E;margin-top:8px;">Playing uploaded video file for session.</p>
+        ` : videoUrl ? `
+          <div style="padding:20px;background:rgba(255,255,255,0.03);border-radius:10px;text-align:center;">
+            <p style="font-size:14px;color:#EAF3F1;margin-bottom:12px;">ClearPath 3D Web Setup Link:</p>
+            <a href="${esc(videoUrl)}" target="_blank" rel="noopener" class="btn btn-accent" style="display:inline-flex;">Open ClearPath 3D Link ${ICONS.eye}</a>
+          </div>
+        ` : `
+          <div style="padding:40px;text-align:center;background:rgba(255,255,255,0.02);border-radius:10px;">
+            <div style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--accent);">${ICONS.video}</div>
+            <h4 style="margin:0 0 6px;color:#fff;font-size:16px;">No Video Attached Yet</h4>
+            <p style="font-size:13px;color:#7FA79E;max-width:400px;margin:0 auto 16px;">You can upload the ClearPath 3D treatment setup video file (.mp4) or paste a video link for ${esc(pat.name)}.</p>
+            <button class="btn btn-accent" onclick="openAlignerVideoModal()">${ICONS.plus} Upload / Attach Video</button>
+          </div>
+        `}
+      </div>`;
+    return;
+  }
+
+  // 3D SIMULATION TAB
+  const totalS = setup.totalStages || 20;
+  const progress = alignerCurrentStage / totalS;
+  const currOverjet = (setup.overjetInitial - (setup.overjetInitial - setup.overjetFinal) * progress).toFixed(1);
+  const currOverbite = (setup.overbiteInitial - (setup.overbiteInitial - setup.overbiteFinal) * progress).toFixed(1);
+  const currUpperWidth = (setup.upperArchWidthInitial + (setup.upperArchWidthFinal - setup.upperArchWidthInitial) * progress).toFixed(1);
+  const currLowerWidth = (setup.lowerArchWidthInitial + (setup.lowerArchWidthFinal - setup.lowerArchWidthInitial) * progress).toFixed(1);
+
+  wrap.innerHTML = `
+    <div class="aligner-container">
+      <div class="aligner-viewer-card">
+        <div class="viewer-topbar">
+          <div>
+            <h3 style="margin:0;font-size:16px;font-family:'Outfit';color:#fff;">ClearPath 3D Setup Viewport</h3>
+            <div style="font-size:12px;color:#A3C5BF;margin-top:2px;">Patient: <b>${esc(pat.name)}</b> · Stage ${alignerCurrentStage} of ${totalS}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="viewer-badge">${ICONS.cube} ${alignerCurrentAngle.replace('_',' ').toUpperCase()} VIEW</span>
+          </div>
+        </div>
+
+        <div class="view-angles">
+          <button class="angle-btn ${alignerCurrentAngle==='front'?'active':''}" onclick="setAlignerAngle('front')">🦷 Front View</button>
+          <button class="angle-btn ${alignerCurrentAngle==='right'?'active':''}" onclick="setAlignerAngle('right')">📐 Right View</button>
+          <button class="angle-btn ${alignerCurrentAngle==='left'?'active':''}" onclick="setAlignerAngle('left')">📐 Left View</button>
+          <button class="angle-btn ${alignerCurrentAngle==='back'?'active':''}" onclick="setAlignerAngle('back')">🔄 Back View</button>
+          <button class="angle-btn ${alignerCurrentAngle==='upper_occlusal'?'active':''}" onclick="setAlignerAngle('upper_occlusal')">🔝 Occlusal Upper</button>
+          <button class="angle-btn ${alignerCurrentAngle==='lower_occlusal'?'active':''}" onclick="setAlignerAngle('lower_occlusal')">🔻 Occlusal Lower</button>
+        </div>
+
+        <div class="canvas-viewport" id="alignerCanvasWrap">
+          ${draw3DTeethCanvas(alignerCurrentAngle, alignerCurrentStage, totalS, pat.name)}
+        </div>
+
+        <div class="stage-controls">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px;">
+              <button class="btn btn-sm ${alignerIsPlaying?'btn-accent':'btn-primary'}" onclick="toggleAlignerPlay()">${alignerIsPlaying?ICONS.pause:ICONS.play} ${alignerIsPlaying?'Pause':'Play Simulation'}</button>
+              <span>Stage: <b>${alignerCurrentStage}</b> / ${totalS} (Tray #${Math.max(1,alignerCurrentStage)})</span>
+            </div>
+            <div style="font-size:12px;color:#9FC4BC;">Wearing duration: Day ${(alignerCurrentStage*14)} of ${totalS*14}</div>
+          </div>
+          <div class="stage-slider-row">
+            <span style="font-size:11px;color:#7FA79E;">Stage 0</span>
+            <input type="range" min="0" max="${totalS}" value="${alignerCurrentStage}" id="stageRangeInput" oninput="setAlignerStage(this.value)">
+            <span style="font-size:11px;color:#7FA79E;">Stage ${totalS}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="meas-card">
+          <h4 class="section-title" style="margin-top:0;display:flex;align-items:center;gap:6px;">${ICONS.ruler} Live Movement Metrics</h4>
+          <div class="meas-grid">
+            <div class="meas-box"><div class="m-lbl">Overjet (mm)</div><div class="m-val">${currOverjet} mm</div><div class="m-sub">Target: ${setup.overjetFinal} mm</div></div>
+            <div class="meas-box"><div class="m-lbl">Overbite (mm)</div><div class="m-val">${currOverbite} mm</div><div class="m-sub">Target: ${setup.overbiteFinal} mm</div></div>
+            <div class="meas-box"><div class="m-lbl">Upper Arch Width</div><div class="m-val">${currUpperWidth} mm</div><div class="m-sub">+${(currUpperWidth-setup.upperArchWidthInitial).toFixed(1)} mm expansion</div></div>
+            <div class="meas-box"><div class="m-lbl">Lower Arch Width</div><div class="m-val">${currLowerWidth} mm</div><div class="m-sub">+${(currLowerWidth-setup.lowerArchWidthInitial).toFixed(1)} mm expansion</div></div>
+          </div>
+
+          <h4 class="section-title" style="margin-bottom:8px;font-size:14px;">Interproximal Spacing & IPR</h4>
+          <table>
+            <thead><tr><th>Tooth Pair</th><th>Current Gap</th><th>Target</th><th>Correction</th></tr></thead>
+            <tbody>
+              ${setup.iprGaps.map(g => {
+                const cGap = (g.startGap - (g.startGap - g.endGap) * progress).toFixed(1);
+                return `<tr>
+                  <td style="font-size:12.5px;font-weight:600;">${esc(g.pair)}</td>
+                  <td><span class="badge ${cGap>0.2?'badge-warn':'badge-success'}">${cGap} mm</span></td>
+                  <td style="font-size:12px;color:var(--muted);">${g.endGap.toFixed(1)} mm</td>
+                  <td style="font-size:12px;color:var(--primary);font-weight:600;">${esc(g.rotation||g.IPR||'Straightened')}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+
+function setAlignerAngle(angle){
+  alignerCurrentAngle = angle;
+  drawAlignerView();
+}
+
+function setAlignerStage(val){
+  alignerCurrentStage = parseInt(val,10);
+  drawAlignerView();
+}
+
+function toggleAlignerPlay(){
+  alignerIsPlaying = !alignerIsPlaying;
+  if(alignerIsPlaying){
+    alignerPlayTimer = setInterval(()=>{
+      alignerCurrentStage++;
+      if(alignerCurrentStage > 20) alignerCurrentStage = 0;
+      const slider = document.getElementById('stageRangeInput');
+      if(slider) slider.value = alignerCurrentStage;
+      drawAlignerView();
+    }, 600);
+  } else {
+    clearInterval(alignerPlayTimer);
+  }
+  drawAlignerView();
+}
+
+function draw3DTeethCanvas(angle, stage, maxStage, patientName){
+  const progress = stage / maxStage;
+  const gap = (1 - progress) * 12;
+  const trayOpacity = 0.35 + (progress * 0.25);
+
+  let viewContent = '';
+  if(angle === 'front'){
+    viewContent = `
+      <g transform="translate(0, -10)">
+        <text x="250" y="50" fill="#64E2D0" font-size="12" font-weight="700" text-anchor="middle" letter-spacing="1">UPPER ARCH (MAXILLA)</text>
+        <path d="M120 120 Q250 80 380 120" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none" stroke-dasharray="4"/>
+        
+        <g fill="#F4F9F8" stroke="#0E5C52" stroke-width="2">
+          <path d="M140 120 C140 100 160 95 165 125 Z" />
+          <path d="M170 125 C170 105 190 100 195 128 Z" />
+          <path d="M${200 - gap/2} 128 C${200 - gap/2} 102 ${235 - gap/2} 98 ${240 - gap/2} 130 Z" />
+          <path d="M${260 + gap/2} 130 C${265 + gap/2} 98 ${300 + gap/2} 102 ${300 + gap/2} 128 Z" />
+          <path d="M305 128 C310 100 330 105 330 125 Z" />
+          <path d="M335 125 C340 95 360 100 360 120 Z" />
+        </g>
+        <text x="${220 - gap/2}" y="88" fill="#A3C5BF" font-size="10" text-anchor="middle">#11</text>
+        <text x="${280 + gap/2}" y="88" fill="#A3C5BF" font-size="10" text-anchor="middle">#21</text>
+
+        <line x1="${240 - gap/2}" y1="115" x2="${260 + gap/2}" y2="115" stroke="#DD6B3B" stroke-width="2" stroke-dasharray="2"/>
+        <circle cx="${240 - gap/2}" cy="115" r="3" fill="#DD6B3B"/>
+        <circle cx="${260 + gap/2}" cy="115" r="3" fill="#DD6B3B"/>
+        <rect x="230" y="98" width="40" height="16" rx="4" fill="#DD6B3B"/>
+        <text x="250" y="110" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">${(1.6 * (1 - progress)).toFixed(1)}mm</text>
+
+        <path d="M130 128 Q250 82 370 128" stroke="#64E2D0" stroke-width="6" fill="none" opacity="${trayOpacity}"/>
+
+        <text x="250" y="295" fill="#64E2D0" font-size="12" font-weight="700" text-anchor="middle" letter-spacing="1">LOWER ARCH (MANDIBLE)</text>
+        <g fill="#EAF3F1" stroke="#0E5C52" stroke-width="2">
+          <path d="M150 220 C150 245 170 250 172 225 Z" />
+          <path d="M178 225 C180 248 198 252 200 227 Z" />
+          <path d="M${205 - gap/3} 227 C${207 - gap/3} 252 ${238 - gap/3} 255 ${240 - gap/3} 228 Z" />
+          <path d="M${260 + gap/3} 228 C${262 + gap/3} 255 ${293 + gap/3} 252 ${295 + gap/3} 227 Z" />
+          <path d="M300 227 C302 252 320 248 322 225 Z" />
+          <path d="M328 225 C330 250 350 245 350 220 Z" />
+        </g>
+        <path d="M140 225 Q250 265 360 225" stroke="#64E2D0" stroke-width="6" fill="none" opacity="${trayOpacity}"/>
+      </g>`;
+  } else if(angle === 'upper_occlusal' || angle === 'lower_occlusal'){
+    const isUpper = angle === 'upper_occlusal';
+    viewContent = `
+      <g transform="translate(0, 0)">
+        <text x="250" y="35" fill="#64E2D0" font-size="13" font-weight="700" text-anchor="middle">${isUpper?'MAXILLARY (UPPER) ARCH OCCLUSAL VIEW':'MANDIBULAR (LOWER) ARCH OCCLUSAL VIEW'}</text>
+        <path d="M110 300 C110 100 390 100 390 300" stroke="rgba(255,255,255,0.12)" stroke-width="40" fill="none" stroke-linecap="round"/>
+        <path d="M100 305 C100 85 400 85 400 305" stroke="#64E2D0" stroke-width="6" fill="none" opacity="${trayOpacity}"/>
+
+        <g fill="#F4F9F8" stroke="#0E5C52" stroke-width="2">
+          <ellipse cx="120" cy="270" rx="14" ry="10" transform="rotate(-30 120 270)"/>
+          <ellipse cx="138" cy="220" rx="13" ry="9" transform="rotate(-20 138 220)"/>
+          <ellipse cx="165" cy="170" rx="12" ry="9" transform="rotate(-10 165 170)"/>
+          <ellipse cx="205" cy="135" rx="11" ry="8" transform="rotate(${(1-progress)*15} 205 135)"/>
+          <ellipse cx="${240 - gap/2}" cy="120" rx="13" ry="7" transform="rotate(0 240 120)"/>
+          <ellipse cx="${260 + gap/2}" cy="120" rx="13" ry="7" transform="rotate(0 260 120)"/>
+          <ellipse cx="295" cy="135" rx="11" ry="8" transform="rotate(${-(1-progress)*15} 295 135)"/>
+          <ellipse cx="335" cy="170" rx="12" ry="9" transform="rotate(10 335 170)"/>
+          <ellipse cx="362" cy="220" rx="13" ry="9" transform="rotate(20 362 220)"/>
+          <ellipse cx="380" cy="270" rx="14" ry="10" transform="rotate(30 380 270)"/>
+        </g>
+        
+        <line x1="120" y1="270" x2="380" y2="270" stroke="#DD6B3B" stroke-width="1.5" stroke-dasharray="3"/>
+        <text x="250" y="265" fill="#DD6B3B" font-size="11" font-weight="700" text-anchor="middle">Arch Expansion: +${(2.1 * progress).toFixed(1)}mm</text>
+      </g>`;
+  } else if(angle === 'right' || angle === 'left'){
+    const isRight = angle === 'right';
+    viewContent = `
+      <g transform="translate(0, 0)">
+        <text x="250" y="40" fill="#64E2D0" font-size="13" font-weight="700" text-anchor="middle">${isRight?'RIGHT LATERAL PROFILE VIEW':'LEFT LATERAL PROFILE VIEW'}</text>
+        <g fill="#F4F9F8" stroke="#0E5C52" stroke-width="2" transform="${isRight?'':'scale(-1,1) translate(-500,0)'}">
+          <path d="M300 130 C300 100 325 105 320 135 Z"/>
+          <path d="M260 132 C260 102 285 107 282 137 Z"/>
+          <path d="M210 135 C210 110 240 112 238 138 Z"/>
+          <path d="M140 138 C140 115 190 115 185 140 Z"/>
+          
+          <path d="M${295 - (1-progress)*8} 210 C${295 - (1-progress)*8} 238 318 235 315 208 Z"/>
+          <path d="M255 208 C255 235 278 232 278 206 Z"/>
+          <path d="M205 206 C205 230 235 228 235 205 Z"/>
+          <path d="M135 205 C135 225 182 225 182 205 Z"/>
+        </g>
+
+        <line x1="315" y1="135" x2="${315 - (1-progress)*12}" y2="208" stroke="#DD6B3B" stroke-width="2"/>
+        <text x="340" y="175" fill="#DD6B3B" font-size="11" font-weight="700">Overjet: ${(3.8 - progress*2.0).toFixed(1)}mm</text>
+        <path d="M130 135 L330 135" stroke="#64E2D0" stroke-width="4" fill="none" opacity="${trayOpacity}"/>
+      </g>`;
+  } else {
+    viewContent = `
+      <g transform="translate(0, 0)">
+        <text x="250" y="40" fill="#64E2D0" font-size="13" font-weight="700" text-anchor="middle">PALATAL / LINGUAL BACK VIEW</text>
+        <g fill="#E4F1EE" stroke="#0E5C52" stroke-width="2">
+          <path d="M140 130 C140 90 360 90 360 130 Z" opacity="0.6"/>
+          <path d="M150 130 Q250 100 350 130" stroke="#64E2D0" stroke-width="6" fill="none" opacity="${trayOpacity}"/>
+        </g>
+        <text x="250" y="200" fill="#A3C5BF" font-size="12" text-anchor="middle">Lingual Alignment Straightening · Stage ${stage}</text>
+      </g>`;
+  }
+
+  return `
+    <svg viewBox="0 0 500 360" width="100%" height="100%">
+      <defs>
+        <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="500" height="360" fill="url(#gridPattern)" />
+      ${viewContent}
+    </svg>`;
+}
+
+function openAlignerVideoModal(){
+  if(!alignerPatientId && DB.patients.length) alignerPatientId = DB.patients[0].id;
+  const setup = (DB.alignerSetups && DB.alignerSetups[alignerPatientId]) || {};
+  
+  openModal('Attach ClearPath 3D Video / Link', `
+    <form id="alignerVideoForm">
+      <div class="form-grid">
+        <div class="field full"><label>Patient *</label><select name="patientId" required>${patientOptions(alignerPatientId)}</select></div>
+        <div class="field full"><label>ClearPath 3D Web Link / Video URL</label>
+          <input type="url" name="videoUrl" value="${esc(setup.videoUrl||'')}" placeholder="https://clearpathaligners.com/setup/12345 or video link">
+        </div>
+        <div class="field full"><label>Upload 3D Setup Video File (.mp4)</label>
+          <input type="file" name="videoFile" accept="video/*">
+          <span style="font-size:11.5px;color:var(--muted);margin-top:4px;">Plays directly in the video player tab.</span>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Save Video Setup</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`);
+    
+  document.getElementById('alignerVideoForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const pid = f.get('patientId');
+    if(!DB.alignerSetups) DB.alignerSetups = {};
+    if(!DB.alignerSetups[pid]) DB.alignerSetups[pid] = { totalStages: 20 };
+    
+    DB.alignerSetups[pid].videoUrl = (f.get('videoUrl')||'').trim();
+    const file = e.target.querySelector('input[name="videoFile"]').files[0];
+    if(file){
+      ALIGNER_VIDEO_CACHE[pid] = URL.createObjectURL(file);
+    }
+    saveDB();
+    closeModal();
+    alignerPatientId = pid;
+    alignerActiveTab = 'video';
+    renderAligners();
+    showToast('ClearPath 3D Video setup attached successfully');
+  });
+}
+
+function printAlignerReport(){
+  if(!alignerPatientId) return;
+  const pat = DB.patients.find(p=>p.id===alignerPatientId);
+  
+  document.getElementById('printArea').innerHTML = `
+    <div class="receipt-head">
+      <div class="receipt-clinic">${esc(DB.settings.clinicName)}<div class="sub">ClearPath Aligners 3D Treatment Setup Report</div></div>
+      <div class="receipt-meta"><b>ClearPath 3D Setup</b><br>${fmtDate(todayISO())}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Patient Name:</b> ${esc(pat.name)} (${esc(pat.id)})</div>
+      <div><b>Total Trays:</b> 20 Upper / 20 Lower</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Doctor:</b> Dr. ${esc(DB.settings.doctorName)}</div>
+      <div><b>Treatment Duration:</b> 40 Weeks (14 days per tray)</div>
+    </div>
+    
+    <h3 style="font-size:15px;margin:20px 0 10px;font-family:'Outfit';">Tooth Movement & Measurements</h3>
+    <table class="receipt-table">
+      <thead><tr><th>Metric</th><th>Initial (Stage 0)</th><th>Final Target (Stage 20)</th><th>Net Correction</th></tr></thead>
+      <tbody>
+        <tr><td>Overjet</td><td>3.8 mm</td><td>1.8 mm</td><td>-2.0 mm reduction</td></tr>
+        <tr><td>Overbite</td><td>3.4 mm</td><td>1.5 mm</td><td>-1.9 mm reduction</td></tr>
+        <tr><td>Upper Arch Width</td><td>34.2 mm</td><td>36.5 mm</td><td>+2.3 mm expansion</td></tr>
+        <tr><td>Lower Arch Width</td><td>31.8 mm</td><td>33.6 mm</td><td>+1.8 mm expansion</td></tr>
+        <tr><td>Central Incisor Gap (#11 - #21)</td><td>1.6 mm</td><td>0.0 mm</td><td>Full closure</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:40px;font-size:12px;color:#555;">Doctor's Approval Signature: ______________________</p>`;
+  window.print();
+}
+
+/* ============ OPG X-RAY (ORTHOPANTOMOGRAM) ============ */
+let opgPatientId = null;
+let opgCurrentFilter = 'normal';
+let opgCurrentZoom = 1;
+const OPG_IMAGE_CACHE = {};
+
+function renderOPG(){
+  if(!opgPatientId && DB.patients.length) opgPatientId = DB.patients[0].id;
+  
+  document.getElementById('topbarRight').innerHTML = `
+    <button class="btn btn-outline-action" onclick="openOPGUploadModal()">${ICONS.plus} Upload / Edit OPG X-Ray</button>
+    <button class="btn btn-accent" onclick="printOPGReport()">${ICONS.print} Print OPG Report</button>`;
+  
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="tooth-toolbar">
+      <div class="field" style="min-width:280px;"><label>Select Patient</label>
+        <select id="opgPatientSelect">${patientOptions(opgPatientId)}</select>
+      </div>
+      <div style="display:flex;gap:8px;align-self:flex-end;">
+        <button class="btn btn-outline-action" onclick="emailOPGReport()">${ICONS.mail} Email OPG Report</button>
+      </div>
+    </div>
+    <div id="opgContentWrap"></div>`;
+
+  document.getElementById('opgPatientSelect').addEventListener('change', e=>{
+    opgPatientId = e.target.value;
+    drawOPGView();
+  });
+
+  drawOPGView();
+}
+
+function drawOPGView(){
+  const wrap = document.getElementById('opgContentWrap');
+  if(!opgPatientId){
+    wrap.innerHTML = `<div class="card pad"><div class="empty-note">Select a patient to view or upload their OPG Panoramic X-ray.</div></div>`;
+    return;
+  }
+  const pat = DB.patients.find(p=>p.id===opgPatientId);
+  if(!DB.opgScans) DB.opgScans = {};
+  
+  const scan = DB.opgScans[opgPatientId] || {
+    date: todayISO(),
+    doctor: DB.settings.doctorName || 'Doctor',
+    findings: {
+      maxilla: 'Normal alveolar bone height. Clear maxillary sinuses bilaterally.',
+      mandible: 'Inferior alveolar nerve canals well defined bilaterally.',
+      tmj: 'TMJ condyles intact with normal contour.',
+      wisdomTeeth: 'Tooth #18 & #28 impacted (Mesioangular). Tooth #38 & #48 erupted.',
+      cariesBone: 'Localized horizontal bone loss in lower molars region.'
+    },
+    tags: ['Panoramic OPG', 'Wisdom Teeth Impacted', 'Full Arch Scan']
+  };
+
+  const uploadedImgUrl = OPG_IMAGE_CACHE[opgPatientId] || scan.imageUrl;
+
+  wrap.innerHTML = `
+    <div class="aligner-container">
+      <div class="aligner-viewer-card" style="background:#050C0B;border-color:#142E2A;">
+        <div class="viewer-topbar">
+          <div>
+            <h3 style="margin:0;font-size:17px;font-family:'Outfit';color:#fff;display:flex;align-items:center;gap:8px;">
+              ${ICONS.xray} Orthopantomogram (OPG Panoramic Radiograph)
+            </h3>
+            <div style="font-size:12.5px;color:#A3C5BF;margin-top:3px;">
+              Patient: <b>${esc(pat.name)}</b> (${esc(pat.id)}) · Scan Date: ${fmtDate(scan.date)}
+            </div>
+          </div>
+          <span class="viewer-badge">${ICONS.xray} PANORAMIC 2D X-RAY</span>
+        </div>
+
+        <div class="view-angles" style="justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="angle-btn ${opgCurrentFilter==='normal'?'active':''}" onclick="setOPGFilter('normal')">👁️ Standard X-Ray</button>
+            <button class="angle-btn ${opgCurrentFilter==='high_contrast'?'active':''}" onclick="setOPGFilter('high_contrast')">⚡ High Contrast</button>
+            <button class="angle-btn ${opgCurrentFilter==='invert'?'active':''}" onclick="setOPGFilter('invert')">🔄 Invert / Negative</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="angle-btn" onclick="zoomOPG(-0.25)">🔍 -</button>
+            <span style="font-size:12px;color:#A3C5BF;min-width:45px;text-align:center;">${Math.round(opgCurrentZoom*100)}%</span>
+            <button class="angle-btn" onclick="zoomOPG(0.25)">🔍 +</button>
+            <button class="angle-btn" onclick="resetOPGZoom()">Reset</button>
+          </div>
+        </div>
+
+        <div class="canvas-viewport" id="opgViewport" style="height:380px;background:#020605;overflow:hidden;cursor:grab;">
+          <div id="opgImageContainer" style="transform:scale(${opgCurrentZoom});transition:transform .2s;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+            ${ uploadedImgUrl ? `
+              <img src="${uploadedImgUrl}" style="max-width:100%;max-height:100%;object-fit:contain;filter:${getOPGFilterCSS(opgCurrentFilter)};" alt="OPG X-Ray Image">
+            ` : `
+              <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;">
+                ${drawOPGSyntheticRadiograph(opgCurrentFilter)}
+                <div style="position:absolute;bottom:12px;right:14px;background:rgba(0,0,0,0.65);padding:4px 10px;border-radius:6px;font-size:11px;color:#64E2D0;border:1px solid rgba(100,226,208,0.3);">
+                  Demonstration Panoramic OPG Schematic · Upload scan for real radiograph
+                </div>
+              </div>
+            `}
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:#7FA79E;">
+          <div><b>Upper Arch (Maxilla)</b> & <b>Lower Arch (Mandible)</b> + Left/Right TMJ Condyles</div>
+          <button class="btn btn-ghost btn-sm" style="color:#64E2D0;border-color:rgba(100,226,208,0.3);" onclick="openOPGUploadModal()">
+            ${uploadedImgUrl ? '📷 Replace X-Ray Image' : '📤 Upload OPG Radiograph File'}
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="meas-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h4 class="section-title" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${ICONS.ruler} OPG Diagnostic Findings
+            </h4>
+            <button class="btn btn-ghost btn-sm" onclick="openOPGUploadModal()">${ICONS.edit} Edit Notes</button>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+            ${(scan.tags||[]).map(t=>`<span class="badge badge-primary" style="font-size:11px;">${esc(t)}</span>`).join('')}
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+            <div class="meas-box" style="background:#fcfdfd;">
+              <div class="m-lbl" style="color:var(--primary-dark);">Upper Jaw (Maxilla & Sinuses)</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">${esc(scan.findings?.maxilla || 'Normal structure.')}</div>
+            </div>
+
+            <div class="meas-box" style="background:#fcfdfd;">
+              <div class="m-lbl" style="color:var(--primary-dark);">Lower Jaw (Mandible & Nerve Canal)</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">${esc(scan.findings?.mandible || 'Normal alignment.')}</div>
+            </div>
+
+            <div class="meas-box" style="background:#fcfdfd;">
+              <div class="m-lbl" style="color:var(--primary-dark);">TMJ (Temporomandibular Joint)</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">${esc(scan.findings?.tmj || 'Intact condyles.')}</div>
+            </div>
+
+            <div class="meas-box" style="background:#fcfdfd;">
+              <div class="m-lbl" style="color:var(--accent);">Wisdom Teeth & Impactions</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">${esc(scan.findings?.wisdomTeeth || 'None reported.')}</div>
+            </div>
+
+            <div class="meas-box" style="background:#fcfdfd;">
+              <div class="m-lbl" style="color:var(--muted);">Periodontal Bone & Lesions</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">${esc(scan.findings?.cariesBone || 'Normal bone density.')}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function setOPGFilter(filter){
+  opgCurrentFilter = filter;
+  drawOPGView();
+}
+
+function zoomOPG(delta){
+  opgCurrentZoom = Math.min(2.5, Math.max(0.5, opgCurrentZoom + delta));
+  const el = document.getElementById('opgImageContainer');
+  if(el) el.style.transform = `scale(${opgCurrentZoom})`;
+}
+
+function resetOPGZoom(){
+  opgCurrentZoom = 1;
+  const el = document.getElementById('opgImageContainer');
+  if(el) el.style.transform = `scale(1)`;
+}
+
+function getOPGFilterCSS(filter){
+  if(filter === 'high_contrast') return 'contrast(1.8) brightness(1.1) grayscale(100%)';
+  if(filter === 'invert') return 'invert(100%) grayscale(100%)';
+  return 'contrast(1.2) grayscale(90%)';
+}
+
+function drawOPGSyntheticRadiograph(filter){
+  const filterStyle = filter==='invert' ? 'filter:invert(100%);' : filter==='high_contrast' ? 'filter:contrast(1.6);' : '';
+  return `
+    <svg viewBox="0 0 700 360" width="100%" height="100%" style="${filterStyle}">
+      <rect width="700" height="360" fill="#040908" />
+      <path d="M 80 170 Q 350 70 620 170" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="45" stroke-linecap="round"/>
+      <path d="M 100 170 Q 350 80 600 170" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="12"/>
+      <path d="M 60 260 Q 350 340 640 260" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="50" stroke-linecap="round"/>
+      <path d="M 80 250 Q 350 320 620 250" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="15"/>
+      <path d="M 100 270 Q 220 290 320 280" fill="none" stroke="#DD6B3B" stroke-width="3" stroke-dasharray="4" opacity="0.8"/>
+      <path d="M 600 270 Q 480 290 380 280" fill="none" stroke="#DD6B3B" stroke-width="3" stroke-dasharray="4" opacity="0.8"/>
+      <ellipse cx="70" cy="110" rx="18" ry="12" fill="rgba(255,255,255,0.6)" stroke="#64E2D0" stroke-width="2"/>
+      <ellipse cx="630" cy="110" rx="18" ry="12" fill="rgba(255,255,255,0.6)" stroke="#64E2D0" stroke-width="2"/>
+      <text x="70" y="90" fill="#64E2D0" font-size="10" text-anchor="middle">R-TMJ</text>
+      <text x="630" y="90" fill="#64E2D0" font-size="10" text-anchor="middle">L-TMJ</text>
+      <path d="M 140 120 Q 220 100 260 140 Q 200 165 140 120 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+      <path d="M 560 120 Q 480 100 440 140 Q 500 165 560 120 Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+      <text x="200" y="130" fill="#A3C5BF" font-size="10" text-anchor="middle">Maxillary Sinus (R)</text>
+      <text x="500" y="130" fill="#A3C5BF" font-size="10" text-anchor="middle">Maxillary Sinus (L)</text>
+      <g fill="#F4F9F8" stroke="#0A2622" stroke-width="1.5">
+        <path d="M 120 165 L 132 165 L 130 195 L 122 195 Z"/><path d="M 140 165 L 155 165 L 152 198 L 143 198 Z"/>
+        <path d="M 165 162 L 182 162 L 178 200 L 169 200 Z"/><path d="M 190 160 L 210 160 L 206 202 L 194 202 Z"/>
+        <path d="M 220 158 L 245 158 L 240 204 L 225 204 Z"/><path d="M 255 155 L 285 155 L 280 205 L 260 205 Z"/>
+        <path d="M 295 153 L 330 153 L 325 206 L 300 206 Z"/><path d="M 338 152 L 358 152 L 356 206 L 340 206 Z"/>
+        <path d="M 364 152 L 384 152 L 382 206 L 366 206 Z"/><path d="M 392 153 L 427 153 L 422 206 L 397 206 Z"/>
+        <path d="M 437 155 L 467 155 L 462 205 L 442 205 Z"/><path d="M 477 158 L 502 158 L 497 204 L 482 204 Z"/>
+        <path d="M 512 160 L 532 160 L 528 202 L 516 202 Z"/><path d="M 540 162 L 557 162 L 553 200 L 544 200 Z"/>
+        <path d="M 567 165 L 582 165 L 579 198 L 570 198 Z"/><path d="M 590 165 L 602 165 L 600 195 L 592 195 Z"/>
+      </g>
+      <g fill="#EAF3F1" stroke="#0A2622" stroke-width="1.5">
+        <path d="M 125 235 L 135 235 L 133 205 L 127 205 Z"/><path d="M 143 235 L 156 235 L 153 203 L 146 203 Z"/>
+        <path d="M 167 238 L 183 238 L 179 201 L 171 201 Z"/><path d="M 192 240 L 211 240 L 207 200 L 196 200 Z"/>
+        <path d="M 222 242 L 246 242 L 241 198 L 227 198 Z"/><path d="M 257 245 L 286 245 L 281 197 L 262 197 Z"/>
+        <path d="M 297 247 L 331 247 L 326 196 L 302 196 Z"/><path d="M 339 248 L 358 248 L 356 196 L 341 196 Z"/>
+        <path d="M 364 248 L 383 248 L 381 196 L 366 196 Z"/><path d="M 391 247 L 425 247 L 420 196 L 396 196 Z"/>
+        <path d="M 436 245 L 465 245 L 460 197 L 441 197 Z"/><path d="M 476 242 L 500 242 L 495 198 L 481 198 Z"/>
+        <path d="M 511 240 L 530 240 L 526 200 L 515 200 Z"/><path d="M 539 238 L 555 238 L 551 201 L 543 201 Z"/>
+        <path d="M 566 235 L 579 235 L 576 203 L 569 203 Z"/><path d="M 587 235 L 597 235 L 595 205 L 589 205 Z"/>
+      </g>
+      <circle cx="110" cy="180" r="14" fill="none" stroke="#DD6B3B" stroke-width="2" stroke-dasharray="3"/>
+      <text x="110" y="150" fill="#DD6B3B" font-size="9" font-weight="700" text-anchor="middle">#18 Impacted</text>
+      <circle cx="610" cy="180" r="14" fill="none" stroke="#DD6B3B" stroke-width="2" stroke-dasharray="3"/>
+      <text x="610" y="150" fill="#DD6B3B" font-size="9" font-weight="700" text-anchor="middle">#28 Impacted</text>
+      <text x="350" y="30" fill="#64E2D0" font-size="14" font-weight="800" text-anchor="middle" letter-spacing="2">FULL MOUTH OPG PANORAMIC RADIOGRAPH</text>
+    </svg>`;
+}
+
+function openOPGUploadModal(){
+  if(!opgPatientId && DB.patients.length) opgPatientId = DB.patients[0].id;
+  const scan = (DB.opgScans && DB.opgScans[opgPatientId]) || {};
+  const f = scan.findings || {};
+
+  openModal('OPG Panoramic X-Ray — Upload & Findings', `
+    <form id="opgUploadForm">
+      <div class="form-grid">
+        <div class="field full"><label>Patient *</label><select name="patientId" required>${patientOptions(opgPatientId)}</select></div>
+        <div class="field"><label>Date of X-Ray</label><input type="date" name="date" value="${scan.date||todayISO()}"></div>
+        <div class="field"><label>Radiologist / Dentist</label><input name="doctor" value="${esc(scan.doctor||DB.settings.doctorName||'')}" placeholder="Dr. ..."></div>
+        
+        <div class="field full"><label>Upload OPG Image File (.jpg, .png, .dcm)</label>
+          <input type="file" name="opgFile" accept="image/*">
+          <span style="font-size:11.5px;color:var(--muted);margin-top:2px;">Select the panoramic X-ray image file from your computer.</span>
+        </div>
+        
+        <div class="field full"><label>Or OPG Image Web URL</label>
+          <input type="url" name="imageUrl" value="${esc(scan.imageUrl||'')}" placeholder="https://.../opg-xray.jpg">
+        </div>
+
+        <div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;">
+          <span class="fieldset-label" style="font-weight:700;color:var(--primary-dark);">Radiographic Findings & Diagnostic Notes</span>
+        </div>
+
+        <div class="field full"><label>Upper Jaw (Maxilla & Sinuses)</label>
+          <input name="maxilla" value="${esc(f.maxilla||'')}" placeholder="e.g. Normal bone height, clear sinuses"></div>
+
+        <div class="field full"><label>Lower Jaw (Mandible & Nerve Canals)</label>
+          <input name="mandible" value="${esc(f.mandible||'')}" placeholder="e.g. Inferior alveolar nerve distance 4mm"></div>
+
+        <div class="field"><label>TMJ (Joint Condyles)</label>
+          <input name="tmj" value="${esc(f.tmj||'')}" placeholder="e.g. Intact bilateral condyles"></div>
+
+        <div class="field"><label>Wisdom Teeth / Impactions</label>
+          <input name="wisdomTeeth" value="${esc(f.wisdomTeeth||'')}" placeholder="e.g. #18 & #28 impacted"></div>
+
+        <div class="field full"><label>Periodontal Bone & Cavity Notes</label>
+          <input name="cariesBone" value="${esc(f.cariesBone||'')}" placeholder="e.g. Generalized horizontal bone loss"></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Save OPG Record</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`, true);
+
+  document.getElementById('opgUploadForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const pid = fd.get('patientId');
+    if(!DB.opgScans) DB.opgScans = {};
+
+    const file = e.target.querySelector('input[name="opgFile"]').files[0];
+    let imageUrl = (fd.get('imageUrl')||'').trim();
+
+    if(file){
+      OPG_IMAGE_CACHE[pid] = URL.createObjectURL(file);
+    }
+
+    DB.opgScans[pid] = {
+      date: fd.get('date') || todayISO(),
+      doctor: fd.get('doctor'),
+      imageUrl: imageUrl || (DB.opgScans[pid]?.imageUrl || ''),
+      findings: {
+        maxilla: fd.get('maxilla'),
+        mandible: fd.get('mandible'),
+        tmj: fd.get('tmj'),
+        wisdomTeeth: fd.get('wisdomTeeth'),
+        cariesBone: fd.get('cariesBone')
+      },
+      tags: ['Panoramic OPG', '2D Radiograph']
+    };
+
+    saveDB();
+    closeModal();
+    opgPatientId = pid;
+    renderOPG();
+    showToast('OPG X-Ray findings saved successfully!');
+  });
+}
+
+function printOPGReport(){
+  if(!opgPatientId) return;
+  const pat = DB.patients.find(p=>p.id===opgPatientId);
+  const scan = (DB.opgScans && DB.opgScans[opgPatientId]) || {};
+  const f = scan.findings || {};
+
+  document.getElementById('printArea').innerHTML = `
+    <div class="receipt-head">
+      <div class="receipt-clinic">${esc(DB.settings.clinicName)}<div class="sub">Orthopantomogram (OPG Panoramic X-Ray Report)</div></div>
+      <div class="receipt-meta"><b>OPG Radiography Report</b><br>Date: ${fmtDate(scan.date||todayISO())}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Patient Name:</b> ${esc(pat.name)} (${esc(pat.id)})</div>
+      <div><b>Age / Gender:</b> ${esc(pat.age||'—')} / ${esc(pat.gender||'—')}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Referring Doctor:</b> Dr. ${esc(scan.doctor||DB.settings.doctorName||'—')}</div>
+      <div><b>Modality:</b> Digital Panoramic Dental Radiograph (OPG)</div>
+    </div>
+    
+    <h3 style="font-size:15px;margin:20px 0 10px;font-family:'Outfit';">Radiographic Observations & Diagnostic Findings</h3>
+    <table class="receipt-table">
+      <thead><tr><th>Anatomical Region</th><th>Findings / Radiographic Status</th></tr></thead>
+      <tbody>
+        <tr><td><b>Upper Jaw (Maxilla & Sinuses)</b></td><td>${esc(f.maxilla||'Normal structural contours.')}</td></tr>
+        <tr><td><b>Lower Jaw (Mandible & Canals)</b></td><td>${esc(f.mandible||'Normal bone height and nerve canal trajectory.')}</td></tr>
+        <tr><td><b>TMJ (Temporomandibular Joint)</b></td><td>${esc(f.tmj||'Intact condyles with smooth range.')}</td></tr>
+        <tr><td><b>Wisdom Teeth / Impactions</b></td><td>${esc(f.wisdomTeeth||'No impacted teeth noted.')}</td></tr>
+        <tr><td><b>Periodontal & Bone Level</b></td><td>${esc(f.cariesBone||'Normal bone level.')}</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:40px;font-size:12.5px;color:#555;">Radiologist / Dental Surgeon Signature: ______________________</p>`;
+  window.print();
+}
+
+function emailOPGReport(){
+  if(!opgPatientId) return;
+  const pat = DB.patients.find(p=>p.id===opgPatientId);
+  const scan = (DB.opgScans && DB.opgScans[opgPatientId]) || {};
+  const f = scan.findings || {};
+
+  const body = `OPG PANORAMIC X-RAY DIAGNOSTIC REPORT
+==================================================
+Clinic: ${DB.settings.clinicName||'Sehat Dental Clinic'}
+Patient Name: ${pat.name} (${pat.id})
+Date of Scan: ${fmtDate(scan.date||todayISO())}
+Doctor: Dr. ${scan.doctor||DB.settings.doctorName||'Doctor'}
+
+RADIOGRAPHIC FINDINGS:
+--------------------------------------------------
+- Upper Jaw (Maxilla & Sinuses): ${f.maxilla||'Normal'}
+- Lower Jaw (Mandible & Canals): ${f.mandible||'Normal'}
+- TMJ Condyles: ${f.tmj||'Normal'}
+- Wisdom Teeth / Impactions: ${f.wisdomTeeth||'None'}
+- Periodontal & Bone Status: ${f.cariesBone||'Normal'}
+
+==================================================
+Report generated automatically by Sehat Dental OPG Radiography System.`;
+
+  openEmailModal({
+    to: pat.email || '',
+    subject: `OPG X-Ray Diagnostic Report - ${pat.name} (${pat.id})`,
+    body: body,
+    title: `✉️ Email OPG X-Ray Report to ${pat.name}`
+  });
+}
+
+/* ============ PRESCRIPTION ============ */
+function renderPrescription(){
+  document.getElementById('topbarRight').innerHTML = `<button class="btn btn-outline-action" onclick="exportPrescriptionsToExcel()">${ICONS.excel} Export Excel</button><button class="btn btn-accent" onclick="openRxForm()">${ICONS.plus} New Prescription</button>`;
+  const c = document.getElementById('content');
+  c.innerHTML = `<div class="toolbar"><div class="search-box">${ICONS.search}<input id="rxSearch" placeholder="Search by patient..."></div></div><div id="rxList"></div>`;
+  const draw = ()=>{
+    const q = (document.getElementById('rxSearch').value||'').toLowerCase();
+    const rows = DB.prescriptions.slice().reverse().filter(r=> !q || r.patientName.toLowerCase().includes(q));
+    document.getElementById('rxList').innerHTML = rows.length ? rows.map(rx=>`
+      <div class="card pad" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><b>${esc(rx.patientName)}</b> <span class="sub-cell">· ${fmtDate(rx.date)} · ${esc(rx.doctor||'—')}</span></div>
+          <div class="actions-cell">
+            <button class="icon-btn" title="Print" onclick="printPrescription('${rx.id}')">${ICONS.print}</button>
+            <button class="icon-btn" title="Email Prescription" onclick="emailPrescription('${rx.id}')">${ICONS.mail}</button>
+            <button class="icon-btn" title="Delete" onclick="deleteRx('${rx.id}')">${ICONS.trash}</button>
+          </div>
+        </div>
+        <table><thead><tr><th>Medicine</th><th>Dosage</th><th>Duration</th><th>Instructions</th></tr></thead>
+        <tbody>${rx.medicines.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dosage)}</td><td>${esc(m.duration)}</td><td class="sub-cell">${esc(m.instructions)}</td></tr>`).join('')}</tbody></table>
+      </div>`).join('') : `<div class="card pad"><div class="empty-note">No prescriptions yet.</div></div>`;
+  };
+  document.getElementById('rxSearch').addEventListener('input', draw);
+  draw();
+}
+function openRxForm(){
+  openModal('New Prescription', `
+    <form id="rxForm">
+      <div class="form-grid">
+        <div class="field full"><label>Patient *</label><select name="patientId" required>${patientOptions('')}</select></div>
+        <div class="field"><label>Doctor Name</label><input name="doctor" placeholder="Dr. ..."></div>
+        <div class="field"><label>Date</label><input type="date" name="date" value="${todayISO()}"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="rx-head"><div>Medicine</div><div>Dosage</div><div>Duration</div><div>Instructions</div><div></div></div>
+        <div id="rxItems"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addRxRow()">${ICONS.plus} Add Medicine</button>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Save Prescription</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`, true);
+  addRxRow();
+  document.getElementById('rxForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const pid = f.get('patientId'); const pat = DB.patients.find(p=>p.id===pid);
+    if(!pat){ showToast('Please select a patient', true); return; }
+    const names=[...document.querySelectorAll('.rx-name')].map(i=>i.value.trim());
+    const dosages=[...document.querySelectorAll('.rx-dosage')].map(i=>i.value.trim());
+    const durations=[...document.querySelectorAll('.rx-duration')].map(i=>i.value.trim());
+    const instructions=[...document.querySelectorAll('.rx-instructions')].map(i=>i.value.trim());
+    const medicines = names.map((n,i)=>({name:n,dosage:dosages[i],duration:durations[i],instructions:instructions[i]})).filter(m=>m.name);
+    if(!medicines.length){ showToast('Add at least one medicine', true); return; }
+    DB.prescriptions.push({id:uid('RX'), patientId:pid, patientName:pat.name, doctor:f.get('doctor'), date:f.get('date')||todayISO(), medicines});
+    saveDB(); closeModal(); renderPrescription(); showToast('Prescription saved');
+  });
+}
+function addRxRow(){
+  const wrap = document.getElementById('rxItems');
+  const row = document.createElement('div'); row.className='rx-row';
+  row.innerHTML = `<input class="rx-name" placeholder="e.g. Amoxicillin 500mg">
+    <input class="rx-dosage" placeholder="1-0-1">
+    <input class="rx-duration" placeholder="5 days">
+    <input class="rx-instructions" placeholder="After meals">
+    <button type="button" class="item-remove" onclick="this.parentElement.remove()">${ICONS.x}</button>`;
+  wrap.appendChild(row);
+}
+function deleteRx(id){
+  confirmDelete('Delete this prescription?', ()=>{ DB.prescriptions = DB.prescriptions.filter(r=>r.id!==id); saveDB(); renderPrescription(); showToast('Prescription deleted'); });
+}
+function printPrescription(id){
+  const rx = DB.prescriptions.find(r=>r.id===id); if(!rx) return;
+  document.getElementById('printArea').innerHTML = `
+    <div class="receipt-head">
+      <div class="receipt-clinic">${esc(DB.settings.clinicName)}<div class="sub">Complete dental care · Clinic Manager</div></div>
+      <div class="receipt-meta"><b>Prescription</b><br>${fmtDate(rx.date)}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Patient:</b> ${esc(rx.patientName)}</div>
+      <div><b>Doctor:</b> ${esc(rx.doctor||'—')}</div>
+    </div>
+    <table class="receipt-table"><thead><tr><th>Medicine</th><th>Dosage</th><th>Duration</th><th>Instructions</th></tr></thead>
+    <tbody>${rx.medicines.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dosage)}</td><td>${esc(m.duration)}</td><td>${esc(m.instructions)}</td></tr>`).join('')}</tbody></table>
+    <p style="margin-top:40px;font-size:12.5px;color:#666;">Doctor's Signature: ______________________</p>`;
+  window.print();
+}
+
+/* ============ BILLING & RECEIPT ============ */
+const PAYMENT_METHODS = ['Cash','Online Payment','Card','Bank Transfer'];
+function billSub(b){ return b.items.reduce((s,i)=> s + (Number(i.qty)||0)*(Number(i.price)||0), 0); }
+function billDiscAmount(b){
+  const sub = billSub(b);
+  return b.discountType==='%' ? sub*(Number(b.discount)||0)/100 : (Number(b.discount)||0);
+}
+function billDiscPercent(b){
+  const sub = billSub(b); if(!sub) return 0;
+  return b.discountType==='%' ? (Number(b.discount)||0) : (billDiscAmount(b)/sub*100);
+}
+function billTotal(b){
+  return Math.max(0, billSub(b) - billDiscAmount(b));
+}
+function billStatusBadge(b){
+  const total = billTotal(b); const paid = Number(b.paid)||0;
+  if(paid<=0) return `<span class="badge badge-danger">Pending</span>`;
+  if(paid>=total) return `<span class="badge badge-success">Paid</span>`;
+  return `<span class="badge badge-warn">Partial</span>`;
+}
+function billPayStatusCell(b){
+  const total = billTotal(b); const paid = Number(b.paid)||0;
+  if(paid>=total && total>0){
+    return `<span class="badge badge-success">Amount PAID</span>`;
+  }
+  const due = b.dueDate ? `<div style="margin-top:5px;"><span class="badge badge-danger">${fmtDate(b.dueDate)}</span></div>` : '';
+  return `<span class="badge badge-warn">Outstanding Dues</span>${due}`;
+}
+function renderBilling(){
+  document.getElementById('topbarRight').innerHTML = `<button class="btn btn-outline-action" onclick="exportBillsToExcel()">${ICONS.excel} Export Excel</button><button class="btn btn-accent" onclick="openBillForm()">${ICONS.plus} New Bill</button>`;
+  const c = document.getElementById('content');
+  c.innerHTML = `<div class="toolbar"><div class="search-box">${ICONS.search}<input id="billSearch" placeholder="Search by Bill No, Patient Name or ID..."></div></div>
+    <div class="card"><div id="billTableWrap" style="overflow-x:auto;"></div></div>`;
+  const draw = ()=>{
+    const q = (document.getElementById('billSearch').value||'').toLowerCase();
+    const rows = DB.bills.slice().reverse().filter(b=> !q || b.billNo.toLowerCase().includes(q) || b.patientName.toLowerCase().includes(q) || (b.patientId||'').toLowerCase().includes(q));
+    document.getElementById('billTableWrap').innerHTML = rows.length ? `
+      <table><thead><tr><th>Bill No.</th><th>Patient</th><th>Clinic</th><th>Total</th><th>Discount</th><th>Payable</th><th>Received</th><th>Remaining</th><th>Payment Method</th><th>Payment Status / Due Date</th><th>Actions</th></tr></thead>
+      <tbody>${rows.map(b=>{
+        const sub = billSub(b); const discAmt = billDiscAmount(b); const discPct = billDiscPercent(b);
+        const payable = billTotal(b); const received = Number(b.paid)||0; const remaining = Math.max(0, payable-received);
+        return `<tr>
+        <td class="name-cell">${esc(b.billNo)}</td>
+        <td><div class="name-cell">${esc(b.patientName)}</div><div class="sub-cell">${esc(b.patientId)}</div></td>
+        <td class="sub-cell">${esc(b.clinic||'—')}</td>
+        <td>${money(sub)}</td>
+        <td><div>${money(discAmt)}</div><div class="sub-cell">${discPct?discPct.toFixed(2)+'%':'0%'}</div></td>
+        <td>${money(payable)}</td>
+        <td>${money(received)}</td>
+        <td>${money(remaining)}</td>
+        <td class="sub-cell">${esc(b.paymentMethod||'—')}</td>
+        <td>${billPayStatusCell(b)}</td>
+        <td class="actions-cell">
+          <button class="icon-btn" title="Print" onclick="printBill('${b.id}')">${ICONS.print}</button>
+          <button class="icon-btn" title="Email Bill Receipt" onclick="emailBill('${b.id}')">${ICONS.mail}</button>
+          <button class="icon-btn" title="Edit" onclick="openBillForm('${b.id}')">${ICONS.edit}</button>
+          <button class="icon-btn" title="Delete" onclick="deleteBill('${b.id}')">${ICONS.trash}</button>
+        </td></tr>`;
+      }).join('')}</tbody></table>` : `<div class="empty-note pad">No bills found.</div>`;
+  };
+  document.getElementById('billSearch').addEventListener('input', draw);
+  draw();
+}
+function openBillForm(id){
+  const b = id ? DB.bills.find(x=>x.id===id) : null;
+  openModal(b?'Edit Bill':'New Bill', `
+    <form id="billForm">
+      <div class="form-grid">
+        <div class="field"><label>Bill No.</label><input value="${b?esc(b.billNo):'INV-'+String(DB.billSeq).padStart(4,'0')+' (auto)'}" disabled style="background:#f2f5f4;color:var(--muted);"></div>
+        <div class="field"><label>Patient *</label><select name="patientId" required>${patientOptions(b?b.patientId:'')}</select></div>
+        <div class="field"><label>Doctor Name</label><input name="doctor" value="${b?esc(b.doctor||''):''}" placeholder="Dr. ..."></div>
+        <div class="field"><label>Clinic</label><input name="clinic" value="${b?esc(b.clinic||''):''}" placeholder="e.g. Main Branch"></div>
+        <div class="field"><label>Bill Date</label><input type="date" name="date" value="${b?b.date:todayISO()}"></div>
+        <div class="field"><label>Payment Method</label><select name="paymentMethod">
+          <option value="">Select</option>
+          ${PAYMENT_METHODS.map(m=>`<option ${b&&b.paymentMethod===m?'selected':''}>${m}</option>`).join('')}
+        </select></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="item-head"><div>Description</div><div>Qty</div><div>Price</div><div>Total</div><div></div></div>
+        <div id="billItems"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addBillItemRow()">${ICONS.plus} Add Item</button>
+      </div>
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="field"><label>Discount</label>
+          <div style="display:flex;gap:6px;">
+            <input name="discount" type="number" min="0" value="${b?b.discount:0}" style="flex:1;" id="billDiscount">
+            <select name="discountType" id="billDiscountType" style="width:76px;"><option value="Rs" ${b&&b.discountType==='Rs'?'selected':''}>Rs.</option><option value="%" ${b&&b.discountType==='%'?'selected':''}>%</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Amount Paid</label><input name="paid" type="number" min="0" value="${b?b.paid:0}" id="billPaid"></div>
+        <div class="field"><label>Due Date <span style="font-weight:400;color:var(--muted);">(if outstanding)</span></label><input type="date" name="dueDate" value="${b?(b.dueDate||''):''}"></div>
+      </div>
+      <div class="bill-summary"><table>
+        <tr><td>Subtotal</td><td id="sumSub">Rs. 0</td></tr>
+        <tr><td>Discount</td><td id="sumDisc">Rs. 0</td></tr>
+        <tr class="total"><td>Total</td><td id="sumTotal">Rs. 0</td></tr>
+        <tr><td>Paid</td><td id="sumPaid">Rs. 0</td></tr>
+        <tr class="balance"><td>Balance</td><td id="sumBal">Rs. 0</td></tr>
+      </table></div>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">${b?'Save Changes':'Create Bill'}</button><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>
+    </form>`, true);
+  if(b && b.items.length){ b.items.forEach(it=>addBillItemRow(it)); } else { addBillItemRow(); }
+  ['billDiscount','billDiscountType','billPaid'].forEach(id=> document.getElementById(id).addEventListener('input', updateBillSummary));
+  document.getElementById('billItems').addEventListener('input', updateBillSummary);
+  updateBillSummary();
+  document.getElementById('billForm').addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const pid = f.get('patientId'); const pat = DB.patients.find(p=>p.id===pid);
+    if(!pat){ showToast('Please select a patient', true); return; }
+    const descs=[...document.querySelectorAll('.bi-desc')].map(i=>i.value.trim());
+    const qtys=[...document.querySelectorAll('.bi-qty')].map(i=>Number(i.value)||0);
+    const prices=[...document.querySelectorAll('.bi-price')].map(i=>Number(i.value)||0);
+    const items = descs.map((d,i)=>({desc:d,qty:qtys[i],price:prices[i]})).filter(it=>it.desc);
+    if(!items.length){ showToast('Add at least one billing item', true); return; }
+    const data = {
+      patientId:pid, patientName:pat.name, doctor:f.get('doctor'), clinic:f.get('clinic'), date:f.get('date')||todayISO(),
+      time: b? b.time : new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+      items, discount:Number(f.get('discount'))||0, discountType:f.get('discountType'), paid:Number(f.get('paid'))||0,
+      paymentMethod:f.get('paymentMethod'), dueDate:f.get('dueDate')
+    };
+    if(b){ Object.assign(b, data); showToast('Bill updated'); }
+    else { DB.bills.push(Object.assign({id:uid('BL'), billNo:'INV-'+String(DB.billSeq).padStart(4,'0')}, data)); DB.billSeq++; showToast('Bill created'); }
+    saveDB(); closeModal(); renderBilling();
+  });
+}
+function addBillItemRow(existing){
+  const wrap = document.getElementById('billItems');
+  const row = document.createElement('div'); row.className='item-row';
+  row.innerHTML = `<input class="bi-desc" placeholder="e.g. Tooth extraction" value="${existing?esc(existing.desc):''}">
+    <input class="bi-qty" type="number" min="1" value="${existing?existing.qty:1}">
+    <input class="bi-price" type="number" min="0" value="${existing?existing.price:''}" placeholder="0">
+    <div class="item-total">Rs. 0</div>
+    <button type="button" class="item-remove" onclick="this.parentElement.remove();updateBillSummary();">${ICONS.x}</button>`;
+  wrap.appendChild(row);
+  updateBillSummary();
+}
+function updateBillSummary(){
+  let sub = 0;
+  document.querySelectorAll('#billItems .item-row').forEach(row=>{
+    const qty = Number(row.querySelector('.bi-qty').value)||0;
+    const price = Number(row.querySelector('.bi-price').value)||0;
+    const t = qty*price; sub += t;
+    row.querySelector('.item-total').textContent = money(t);
+  });
+  const discVal = Number(document.getElementById('billDiscount').value)||0;
+  const discType = document.getElementById('billDiscountType').value;
+  const disc = discType==='%' ? sub*discVal/100 : discVal;
+  const total = Math.max(0, sub-disc);
+  const paid = Number(document.getElementById('billPaid').value)||0;
+  const bal = total - paid;
+  document.getElementById('sumSub').textContent = money(sub);
+  document.getElementById('sumDisc').textContent = '- ' + money(disc);
+  document.getElementById('sumTotal').textContent = money(total);
+  document.getElementById('sumPaid').textContent = money(paid);
+  document.getElementById('sumBal').textContent = money(Math.max(0,bal));
+}
+function deleteBill(id){
+  confirmDelete('Delete this bill? This cannot be undone.', ()=>{ DB.bills = DB.bills.filter(b=>b.id!==id); saveDB(); renderBilling(); showToast('Bill deleted'); });
+}
+function printBill(id){
+  const b = DB.bills.find(x=>x.id===id); if(!b) return;
+  const sub = b.items.reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.price)||0),0);
+  const disc = b.discountType==='%' ? sub*(Number(b.discount)||0)/100 : (Number(b.discount)||0);
+  const total = Math.max(0,sub-disc); const paid = Number(b.paid)||0; const bal = Math.max(0,total-paid);
+  document.getElementById('printArea').innerHTML = `
+    <div class="receipt-head">
+      <div class="receipt-clinic">${esc(DB.settings.clinicName)}<div class="sub">Complete dental care · Clinic Manager</div></div>
+      <div class="receipt-meta"><b>${esc(b.billNo)}</b><br>${fmtDate(b.date)} ${esc(b.time||'')}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Patient:</b> ${esc(b.patientName)} (${esc(b.patientId)})</div>
+      <div><b>Doctor:</b> ${esc(b.doctor||'—')}</div>
+    </div>
+    <div class="receipt-block">
+      <div><b>Clinic:</b> ${esc(b.clinic||'—')}</div>
+      <div><b>Payment Method:</b> ${esc(b.paymentMethod||'—')}</div>
+    </div>
+    <table class="receipt-table"><thead><tr><th>Description</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+    <tbody>${b.items.map(i=>`<tr><td>${esc(i.desc)}</td><td>${i.qty}</td><td>${money(i.price)}</td><td>${money((i.qty||0)*(i.price||0))}</td></tr>`).join('')}</tbody></table>
+    <div style="display:flex;justify-content:flex-end;">
+      <table style="width:260px;font-size:13px;">
+        <tr><td>Subtotal</td><td style="text-align:right;">${money(sub)}</td></tr>
+        <tr><td>Discount</td><td style="text-align:right;">- ${money(disc)}</td></tr>
+        <tr style="font-weight:800;font-size:15px;"><td style="padding-top:6px;">Total</td><td style="text-align:right;padding-top:6px;">${money(total)}</td></tr>
+        <tr><td>Paid</td><td style="text-align:right;">${money(paid)}</td></tr>
+        <tr style="font-weight:800;color:var(--accent);"><td>Balance</td><td style="text-align:right;">${money(bal)}</td></tr>
+      </table>
+    </div>
+    ${bal>0 ? `<p style="text-align:right;font-size:12px;color:var(--danger);margin-top:-4px;">Status: Outstanding Dues${b.dueDate?' · Due '+fmtDate(b.dueDate):''}</p>` : `<p style="text-align:right;font-size:12px;color:var(--success);margin-top:-4px;">Status: Amount Paid</p>`}
+    <p style="margin-top:36px;font-size:11.5px;color:#888;text-align:center;">Thank you for visiting ${esc(DB.settings.clinicName)}. Please retain this receipt for your records.</p>`;
+  window.print();
+}
+
+/* ============ ROUTER ============ */
+const RENDERERS = {
+  dashboard: renderDashboard, register: renderRegister, patients: renderPatients,
+  appointments: renderAppointments, toothchart: renderToothChart, treatment: renderTreatment,
+  aligners: renderAligners, opg: renderOPG,
+  prescription: renderPrescription, billing: renderBilling
+};
+
+(async function init(){
+  await loadDB();
+  // Update login screen clinic name
+  const lcn = document.getElementById('loginClinicName');
+  if(lcn) lcn.textContent = DB.settings.clinicName || 'Sehat Dental';
+  // Check if already logged in this session
+  if(sessionStorage.getItem('sd_auth') === 'yes'){
+    isLoggedIn = true;
+    document.getElementById('loginScreen').style.display = 'none';
+    updateNavFoot();
+  }
+  renderNav();
+  goTo('dashboard');
+})();
+</script>
+</body>
+</html>
